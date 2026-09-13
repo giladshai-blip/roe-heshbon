@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * רואה חשבון — Dashboard V5.6
+ * רואה חשבון — Dashboard V5.6.1
  * ============================================================
  * דשבורד משפחתי ללא שעונים:
  * - כרטיסי KPI ברורים.
@@ -14,7 +14,7 @@
 const DASHBOARD_V56 = {
   SPREADSHEET_ID: '1a172bDSpW5L4gDXgrZDmh82NBgB2eOM2dUNiyCl1dbM',
   DASHBOARD_SHEET_NAME: 'לוח מחוונים',
-  VERSION: 'Dashboard V5.6',
+  VERSION: 'Dashboard V5.6.1',
   HELPER_START_COL: 25,
   HELPER_END_COL: 26
 };
@@ -25,6 +25,7 @@ function installDashboardV56() {
 
   ensureDashboardV56Grid_(sheet);
   sheet.getCharts().forEach(function(chart){ sheet.removeChart(chart); });
+  sheet.getDataRange().breakApart();
   sheet.clear();
   sheet.clearConditionalFormatRules();
   sheet.setHiddenGridlines(true);
@@ -42,6 +43,7 @@ function installDashboardV56() {
   configureDashboardV56Grid_(sheet);
   buildDashboardV56HelperData_(sheet);
   buildDashboardV56Layout_(sheet);
+  guardDashboardV561_(sheet);
   applyDashboardV56ConditionalFormatting_(sheet);
 
   sheet.hideColumns(
@@ -52,7 +54,8 @@ function installDashboardV56() {
   SpreadsheetApp.flush();
   ss.setActiveSheet(sheet);
   sheet.getRange('A1').activate();
-  ss.toast('Dashboard V5.6 נבנה בהצלחה', 'רואה חשבון', 8);
+  setConfigParam_('גרסת דשבורד','V5.6.1','','Dashboard V5.6.1');
+  ss.toast('Dashboard V5.6.1 נבנה בהצלחה', 'רואה חשבון', 8);
 }
 
 function refreshDashboardV56() { return installDashboardV56(); }
@@ -61,6 +64,7 @@ function clearDashboardV56() {
   const ss = SpreadsheetApp.openById(DASHBOARD_V56.SPREADSHEET_ID);
   const sheet = getDashboardV56Sheet_();
   sheet.getCharts().forEach(function(chart){ sheet.removeChart(chart); });
+  sheet.getDataRange().breakApart();
   sheet.clear();
   sheet.clearConditionalFormatRules();
   sheet.setHiddenGridlines(true);
@@ -77,62 +81,37 @@ function refreshCleanDashboardV54() { return refreshDashboardV56(); }
 function clearCleanDashboardV54() { return clearDashboardV56(); }
 
 function buildDashboardV56HelperData_(sheet) {
-  sheet.getRange('Y1:Z13').setValues([
-    ['מדד','ערך'],
-    ['יתרת עו״ש מחושבת',''],
-    ['סוף חודש צפוי',''],
-    ['שפל 30 יום',''],
-    ['חשיפת אשראי משפחתית',''],
-    ['יעד כרית ביטחון',''],
-    ['כרית ביטחון נוכחית',''],
-    ['פער כרית ביטחון',''],
-    ['מאזן חודשי',''],
-    ['סנכרון אחרון',''],
-    ['אימות עו״ש אחרון',''],
-    ['יחס כרטיס מקסימלי',''],
-    ['כרטיס בסיכון הגבוה ביותר','']
+  sheet.getRange('Y1:Z14').setValues([
+    ['מדד','ערך'],['יתרת עו״ש מחושבת',''],['סוף חודש צפוי',''],['שפל 30 יום',''],
+    ['יחס חיובים למסגרות — כרטיסים עם נתונים',''],['יעד כרית ביטחון',''],['כרית ביטחון נוכחית',''],
+    ['פער כרית ביטחון',''],['מאזן חודשי',''],['סנכרון אחרון',''],['אימות עו״ש אחרון',''],
+    ['יחס כרטיס מקסימלי',''],['כרטיס בעל יחס מקסימלי',''],['יעד יחס אשראי באחוזים','']
   ]);
-
-  sheet.getRange('Z2').setFormula(
-    '=IFERROR(INDEX(\'הגדרות\'!B:B,MATCH("יתרת עו״ש מחושבת אוטומטית",\'הגדרות\'!A:A,0)),0)'
-  );
-  sheet.getRange('Z3').setFormula(
-    '=IFERROR(INDEX(FILTER(\'תזרים\'!G2:G,\'תזרים\'!A2:A<>""),ROWS(FILTER(\'תזרים\'!G2:G,\'תזרים\'!A2:A<>""))),0)'
-  );
-  sheet.getRange('Z4').setFormula(
-    '=MIN(IFERROR(MIN(FILTER(\'תזרים\'!G$2:G$32,\'תזרים\'!A$2:A$32>=TODAY(),\'תזרים\'!A$2:A$32<=TODAY()+30)),1E+99),IFERROR(MIN(FILTER(\'גאנט תזרים שנתי\'!I$16:I$380,\'גאנט תזרים שנתי\'!A$16:A$380>=TODAY(),\'גאנט תזרים שנתי\'!A$16:A$380<=TODAY()+30)),1E+99))'
-  );
-  sheet.getRange('Z5').setFormula(
-    '=IFERROR(MAX(0,MIN(100,SUM(FILTER(\'כרטיסי אשראי\'!$E$2:$E,\'כרטיסי אשראי\'!$G$2:$G>0))/SUM(FILTER(\'כרטיסי אשראי\'!$G$2:$G,\'כרטיסי אשראי\'!$G$2:$G>0))*100)),0)'
-  );
-  sheet.getRange('Z6').setFormula(
-    '=IFERROR(INDEX(\'יעדים\'!B:B,MATCH("כרית ביטחון / חיסכון ראשון",\'יעדים\'!A:A,0)),0)'
-  );
-  sheet.getRange('Z7').setFormula(
-    '=IFERROR(INDEX(\'יעדים\'!C:C,MATCH("כרית ביטחון / חיסכון ראשון",\'יעדים\'!A:A,0)),0)'
-  );
-  sheet.getRange('Z8').setFormula('=MAX(0,Z6-Z7)');
-  sheet.getRange('Z9').setFormula(
-    '=IFERROR(\'גאנט תזרים שנתי\'!B5+\'גאנט תזרים שנתי\'!B7-\'גאנט תזרים שנתי\'!B9,0)'
-  );
-  sheet.getRange('Z10').setFormula(
-    '=IFERROR(INDEX(\'הגדרות\'!B:B,MATCH("תאריך רענון אחרון",\'הגדרות\'!A:A,0)),"")'
-  );
-  sheet.getRange('Z11').setFormula(
-    '=IFERROR(INDEX(\'הגדרות\'!B:B,MATCH("תאריך ושעת יתרת עו״ש",\'הגדרות\'!A:A,0)),"")'
-  );
-  sheet.getRange('Z12').setFormula(
-    '=IFERROR(MAX(FILTER(\'כרטיסי אשראי\'!H2:H,\'כרטיסי אשראי\'!G2:G>0))*100,0)'
-  );
-  sheet.getRange('Z13').setFormula(
-    '=IFERROR(INDEX(\'כרטיסי אשראי\'!C:C,MATCH(MAX(FILTER(\'כרטיסי אשראי\'!H2:H,\'כרטיסי אשראי\'!G2:G>0)),FILTER(\'כרטיסי אשראי\'!H2:H,\'כרטיסי אשראי\'!G2:G>0),0)+1),"")'
-  );
-
+  function numeric(expr) {return '=IFERROR(IF(ISNUMBER('+expr+'),'+expr+',"לא זמין"),"לא זמין")';}
+  const balance='INDEX(\'הגדרות\'!B:B,MATCH("יתרת עו״ש מחושבת אוטומטית",\'הגדרות\'!A:A,0))';
+  sheet.getRange('Z2').setFormula(numeric(balance));
+  sheet.getRange('Z3').setFormula(numeric(endOfMonthFormula_().slice(1)));
+  sheet.getRange('Z4').setFormula(forecastMinimumFormula_());
+  const cards="'כרטיסי אשראי'!";
+  const eligible=cards+'G2:G>0,ISNUMBER('+cards+'H2:H),'+cards+'A2:A<>"",REGEXMATCH('+cards+'I2:I,"זהות.*אימות")=FALSE';
+  const ratios='FILTER('+cards+'H2:H,'+eligible+')';
+  sheet.getRange('Z5').setFormula('=IFERROR(SUM(FILTER('+cards+'E2:E,'+eligible+'))/SUM(FILTER('+cards+'G2:G,'+eligible+'))*100,"לא זמין")');
+  const goalRow=findGoalRow_();
+  sheet.getRange('Z6').setFormula(numeric("'יעדים'!B"+goalRow));
+  sheet.getRange('Z7').setFormula(numeric("'יעדים'!C"+goalRow));
+  sheet.getRange('Z8').setFormula('=IF(AND(ISNUMBER(Z6),ISNUMBER(Z7)),MAX(0,Z6-Z7),"לא זמין")');
+  sheet.getRange('Z9').setFormula('=IF(AND(ISNUMBER(\'גאנט תזרים שנתי\'!B5),ISNUMBER(\'גאנט תזרים שנתי\'!B7),ISNUMBER(\'גאנט תזרים שנתי\'!B9)),\'גאנט תזרים שנתי\'!B5+\'גאנט תזרים שנתי\'!B7-\'גאנט תזרים שנתי\'!B9,"לא זמין")');
+  sheet.getRange('Z10').setFormula('=IFERROR(INDEX(\'הגדרות\'!B:B,MATCH("תאריך רענון אחרון",\'הגדרות\'!A:A,0)),"")');
+  sheet.getRange('Z11').setFormula('=IFERROR(INDEX(\'הגדרות\'!B:B,MATCH("תאריך ושעת יתרת עו״ש",\'הגדרות\'!A:A,0)),"")');
+  sheet.getRange('Z12').setFormula('=IFERROR(MAX('+ratios+')*100,"לא זמין")');
+  // Filter labels and ratios using identical predicates; gaps do not shift the label.
+  sheet.getRange('Z13').setFormula('=IFERROR(INDEX(FILTER('+cards+'C2:C,'+eligible+'),MATCH(MAX('+ratios+'),'+ratios+',0)),"לא זמין")');
+  sheet.getRange('Z14').setFormula(numeric('INDEX(\'הגדרות\'!B:B,MATCH("יעד ניצול אשראי",\'הגדרות\'!A:A,0))*100'));
   sheet.getRange('Z2:Z4').setNumberFormat('#,##0.00 ₪');
   sheet.getRange('Z5').setNumberFormat('0.0');
   sheet.getRange('Z6:Z9').setNumberFormat('#,##0.00 ₪');
   sheet.getRange('Z10:Z11').setNumberFormat('dd/mm/yyyy hh:mm');
-  sheet.getRange('Z12').setNumberFormat('0.0');
+  sheet.getRange('Z12:Z14').setNumberFormat('0.0');
 }
 
 function buildDashboardV56Layout_(sheet) {
@@ -263,11 +242,9 @@ function applyDashboardV56ConditionalFormatting_(sheet) {
   addCardRulesV56_(rules,sheet,'E5:H8','$Z$3');
   addCardRulesV56_(rules,sheet,'I5:L8','$Z$4');
   addCardRulesV56_(rules,sheet,'M5:P8','$Z$9');
-
   rules.push(
-    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=$Z$12>=50').setBackground('#FDECEC').setRanges([sheet.getRange('A23:D26')]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND($Z$12>=30,$Z$12<50)').setBackground('#FFF7E6').setRanges([sheet.getRange('A23:D26')]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=$Z$12<30').setBackground('#ECF8F0').setRanges([sheet.getRange('A23:D26')]).build()
+    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISNUMBER($Z$12),ISNUMBER($Z$14),$Z$12>=$Z$14)').setBackground('#FFF7E6').setRanges([sheet.getRange('A23:D26')]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISNUMBER($Z$12),ISNUMBER($Z$14),$Z$12<$Z$14)').setBackground('#ECF8F0').setRanges([sheet.getRange('A23:D26')]).build()
   );
   sheet.setConditionalFormatRules(rules);
 }
@@ -275,9 +252,9 @@ function applyDashboardV56ConditionalFormatting_(sheet) {
 function addCardRulesV56_(rules,sheet,rangeA1,helperRef) {
   const range=sheet.getRange(rangeA1);
   rules.push(
-    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('='+helperRef+'<0').setBackground('#FDECEC').setRanges([range]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND('+helperRef+'>=0,'+helperRef+'<1500)').setBackground('#FFF7E6').setRanges([range]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('='+helperRef+'>=1500').setBackground('#ECF8F0').setRanges([range]).build()
+    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISNUMBER('+helperRef+'),'+helperRef+'<0)').setBackground('#FDECEC').setRanges([range]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISNUMBER('+helperRef+'),'+helperRef+'>=0,'+helperRef+'<1500)').setBackground('#FFF7E6').setRanges([range]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISNUMBER('+helperRef+'),'+helperRef+'>=1500)').setBackground('#ECF8F0').setRanges([range]).build()
   );
 }
 
@@ -299,4 +276,29 @@ function getDashboardV56Sheet_() {
   const sheet=ss.getSheetByName(DASHBOARD_V56.DASHBOARD_SHEET_NAME);
   if(!sheet) throw new Error('לא נמצא גיליון בשם "'+DASHBOARD_V56.DASHBOARD_SHEET_NAME+'".');
   return sheet;
+}
+
+function forecastMinimumFormula_() {
+  return '=IFERROR(LET(d,{\'תזרים\'!A2:A32;\'גאנט תזרים שנתי\'!A16:A380},v,{\'תזרים\'!G2:G32;\'גאנט תזרים שנתי\'!I16:I380},valid,(d>=TODAY())*(d<TODAY()+30)*ISNUMBER(v),IF(COUNTUNIQUE(FILTER(d,valid))=30,MIN(FILTER(v,valid)),"לא זמין")),"לא זמין")';
+}
+
+function guardDashboardV561_(sheet) {
+  sheet.getRange('A3').setValue('יתרת העו״ש היא אומדן מעוגן מאומת. התחזיות תלויות בתאריכים ובהנחות שבמערכת.');
+  const essential='AND(ISNUMBER($Z$2),ISNUMBER($Z$3),ISNUMBER($Z$4),ISNUMBER($Z$6),ISNUMBER($Z$7),ISNUMBER($Z$8),ISNUMBER($Z$9))';
+  ['A11','I11','F17','F18'].forEach(function(cell){
+    const old=sheet.getRange(cell).getFormula();
+    sheet.getRange(cell).setFormula('=IF('+essential+','+old.slice(1)+',"חסרים נתונים לתמונה מלאה. יש לבדוק את הסנכרון, העוגן ותחזית 30 הימים.")');
+  });
+  ['C17','C18'].forEach(function(cell){
+    const old=sheet.getRange(cell).getFormula();
+    sheet.getRange(cell).setFormula('=IF('+essential+','+old.slice(1)+',"דורש בדיקה")');
+  });
+  sheet.getRange('C19').setFormula('=IF(AND(ISNUMBER($Z$12),ISNUMBER($Z$14)),IF($Z$12>=$Z$14,"חשוב","מעקב"),"דורש אימות")');
+  sheet.getRange('F19').setFormula('=IF(AND(ISNUMBER($Z$12),ISNUMBER($Z$14)),IF($Z$12>=$Z$14,"יחס החיוב הגבוה ביותר הוא "&TEXT($Z$12,"0.0")&"% בכרטיס "&$Z$13&"; היעד הוא "&TEXT($Z$14,"0.0")&"%. בדקו את היתרה הפנויה אצל המנפיק.","בכרטיסים עם נתונים זמינים יחס החיוב מתחת ליעד; המדד אינו כולל את כלל ההתחייבויות."),"יש להשלים או לאמת מסגרות, חיובים וזהות כרטיסים.")');
+  sheet.getRange('A24').setFormula('=IF(AND(ISNUMBER($Z$5),ISNUMBER($Z$12)),"יחס חיובים מצרפי: "&TEXT($Z$5,"0.0")&"% | מקסימום: "&TEXT($Z$12,"0.0")&"% — "&$Z$13,"נתוני אשראי חלקיים — דורש אימות")');
+  sheet.getRange('A24').setNote('יחס החיוב הקרוב למסגרת בלבד, לא ניצול כולל. כרטיסים ללא מסגרת/חיוב או עם סתירת זהות מוחרגים; מסגרות משותפות עשויות לגרום לכפל במכנה.');
+  sheet.getRange('E24').setFormula('=IF(AND(ISNUMBER($Z$7),ISNUMBER($Z$6)),TEXT($Z$7,"#,##0 ₪")&" מתוך "&TEXT($Z$6,"#,##0 ₪"),"לא זמין")');
+  ['C20','F20'].forEach(function(cell){
+    const old=sheet.getRange(cell).getFormula();sheet.getRange(cell).setFormula('=IF(ISNUMBER($Z$8),'+old.slice(1)+',"דורש אימות")');
+  });
 }
