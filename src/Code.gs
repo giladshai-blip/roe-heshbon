@@ -1,26 +1,28 @@
 /**
  * ============================================================
- * רואה חשבון — Core V5.6.4
+ * רואה חשבון — Core V5.6.5
  * ============================================================
  * קובץ מלא להחלפת Code.gs ב-Google Apps Script.
  *
- * עיקרי V5.6.4:
- * - Health Check מכיר ב"העברה פנימית" כסוג תנועה חוקי ואינו מסמן אותה כעסקה פגומה.
- * - מקור חישוב משותף לשפל 30 יום עבור Core, Dashboard ו-Automation Engine.
- * - רענון KPI השפל בדשבורד לפני Health Check לאחר Sync/Forecast Refresh.
- * - Dashboard צפוי: V5.6.2.
- * - נשמרו כל תיקוני V5.6.3: כיוון RiseUp, batch upsert, Health Check סמנטי,
- *   הפרדת שכבות, מקור יחיד ליעד כרית ביטחון, firstSeenAt שמרני ותאימות V5/V5.4.
+ * עיקרי V5.6.5:
+ * - סנכרון RiseUp מתוזמן אחת ל-3 שעות במקום אחת לשעה.
+ * - התקנת הטריגר מוחקת טריגרי syncRiseUpV5 קיימים ומוודאת שנותר טריגר יחיד.
+ * - 429 מטופל בעצירה בטוחה ובהצגת Retry-After; אין retry עיוור מול rate limit.
+ * - Health Check מזהה טריגר חסר/כפול כאשר ScriptApp זמין.
+ * - סף רעננות הסנכרון הותאם לטריגר של 3 שעות עם מרווח תזמון.
+ * - נשמרו תיקוני V5.6.4: העברה פנימית חוקית ומקור משותף לשפל 30 יום.
  * ============================================================
  */
 
 const V56 = {
-  VERSION: 'V5.6.4',
+  VERSION: 'V5.6.5',
   DASHBOARD_VERSION: 'V5.6.2',
   SPREADSHEET_ID: '1a172bDSpW5L4gDXgrZDmh82NBgB2eOM2dUNiyCl1dbM',
   TIMEZONE: 'Asia/Jerusalem',
   API_BASE: 'https://input.riseup.co.il',
   SAFETY_MONTHS: 2,
+  SYNC_INTERVAL_HOURS: 3,
+  SYNC_STALE_HOURS: 4,
   LARGE_TRANSACTION_ALERT: 2000,
   MAX_RETRIES: 4,
   INITIAL_RETRY_MS: 1000,
@@ -74,15 +76,15 @@ function onOpen() {
         .addItem('ניקוי הדשבורד', 'clearDashboardV56')
     )
     .addSeparator()
-    .addItem('🩺 בדיקת מערכת V5.6.4', 'healthCheckV5')
+    .addItem('🩺 בדיקת מערכת V5.6.5', 'healthCheckV5')
     .addItem('🔍 בדיקת כפילויות', 'checkDuplicatesV5')
     .addItem('✅ סריקת סטטוסי אימות', 'scanVerificationStatusV5')
     .addItem('ℹ️ סטטוס מערכת', 'showSystemStatusV5')
     .addSeparator()
     .addSubMenu(
       ui.createMenu('⚙️ הגדרות מערכת')
-        .addItem('🛠 התקנת / שדרוג V5.6.4', 'setupV56')
-        .addItem('⏰ התקנת סנכרון שעתי', 'installHourlyTriggerV5')
+        .addItem('🛠 התקנת / שדרוג V5.6.5', 'setupV56')
+        .addItem('⏰ התקנת סנכרון כל 3 שעות', 'installRiseupSyncTriggerV5')
         .addItem('🗑 מחיקת טריגר', 'deleteV5Triggers')
     )
     .addToUi();
@@ -107,6 +109,7 @@ function setupV56() {
     setConfigParam_('מקור עסקאות', 'get_transactions', '', 'RiseUp External API');
     setConfigParam_('מפתח upsert', 'transactionId + fingerprint fallback', '', 'transactionId מפתח ראשי');
     setConfigParam_('חלון סנכרון עסקאות', V56.SAFETY_MONTHS, 'חודשים', 'חודש נוכחי + חודש קודם');
+    setConfigParam_('תדירות סנכרון RiseUp', V56.SYNC_INTERVAL_HOURS, 'שעות', 'טריגר מתוזמן; התקנה באמצעות installRiseupSyncTriggerV5');
     setConfigParam_('מצב מנוע תחזיות', 'AUTO+SEMANTIC_CHECK', '', 'רענון + בדיקת תלות סמנטית');
     if (typeof installDashboardV56 === 'function') installDashboardV56();
     SpreadsheetApp.flush();
@@ -201,7 +204,8 @@ function healthCheckV56_(){
   const verify=getSheet_('VERIFICATION');const vr=verify.getLastRow()>1?verify.getRange(2,1,verify.getLastRow()-1,9).getDisplayValues():[];const active=summarizeVerification_(vr).active;if(active)warnings.push(active+' נושאי אימות פעילים בגיליון אימות נתונים');
   const dash=getSheet_('DASHBOARD');[['Z2',autoBalance],['Z3',end.value],['Z4',horizon.minimum],['Z6',goal]].forEach(function(pair){const actual=numberOrNaN_(dash.getRange(pair[0]).getValue());if(!isFinite(actual)||!isFinite(pair[1])||Math.abs(actual-pair[1])>0.01)errors.push('מקור KPI בדשבורד דורש רענון: '+pair[0]);});if(!String(dash.getRange('A5').getValue()).includes('מחושבת'))warnings.push('כרטיס העו״ש אינו מסומן כמחושב');
   const errorCells=findFormulaErrors_();if(errorCells.length)errors.push('שגיאות נוסחה ('+errorCells.length+'): '+errorCells.slice(0,12).join(', '));
-  const sync=getConfigParam_('תאריך רענון אחרון');if(!isValidDate_(sync)||sync.getTime()>Date.now())warnings.push('מועד סנכרון אחרון חסר או לא תקין');else if(Date.now()-sync.getTime()>3*3600000)warnings.push('הסנכרון האחרון ישן מ-3 שעות');if(getConfigParam_('גרסת מערכת')!==V56.VERSION)warnings.push('גרסת Core המותקנת בהגדרות אינה '+V56.VERSION);if(getConfigParam_('גרסת דשבורד')!==V56.DASHBOARD_VERSION)warnings.push('גרסת הדשבורד דורשת התקנה: '+V56.DASHBOARD_VERSION);
+  const sync=getConfigParam_('תאריך רענון אחרון');if(!isValidDate_(sync)||sync.getTime()>Date.now())warnings.push('מועד סנכרון אחרון חסר או לא תקין');else if(Date.now()-sync.getTime()>V56.SYNC_STALE_HOURS*3600000)warnings.push('הסנכרון האחרון ישן מ-'+V56.SYNC_STALE_HOURS+' שעות');if(getConfigParam_('גרסת מערכת')!==V56.VERSION)warnings.push('גרסת Core המותקנת בהגדרות אינה '+V56.VERSION);if(getConfigParam_('גרסת דשבורד')!==V56.DASHBOARD_VERSION)warnings.push('גרסת הדשבורד דורשת התקנה: '+V56.DASHBOARD_VERSION);
+  const triggerCount=getRiseupSyncTriggerCount_();if(triggerCount===0)warnings.push('טריגר סנכרון RiseUp אוטומטי אינו מותקן');else if(triggerCount>1)errors.push('נמצאו '+triggerCount+' טריגרי RiseUp כפולים; יש להריץ installRiseupSyncTriggerV5');
   warnings.push('יתרת העו״ש היא אומדן. עסקאות ביום העוגן, תיקונים ועסקאות שנמחקו ב-RiseUp דורשים התאמה לבנק.');return healthResult_(errors,warnings,autoBalance);
 }
 
@@ -209,8 +213,10 @@ function checkDuplicatesV5(){const sh=getSheet_('TRANSACTIONS');const lr=sh.getL
 function scanVerificationStatusV5(){const sh=getSheet_('VERIFICATION');const lr=sh.getLastRow();const rows=lr>1?sh.getRange(2,1,lr-1,9).getDisplayValues():[];const result=summarizeVerification_(rows);SpreadsheetApp.getUi().alert('סריקת אימות','נושאים פעילים: '+result.active+' מתוך '+result.total,SpreadsheetApp.getUi().ButtonSet.OK);return result;}
 function showSystemStatusV5(){const h=healthCheckV56_();const sync=getConfigParam_('תאריך רענון אחרון');const anchor=getConfigParam_('תאריך ושעת יתרת עו״ש');const text='Core: '+String(getConfigParam_('גרסת מערכת')||'')+'\nDashboard: '+String(getConfigParam_('גרסת דשבורד')||'')+'\nסנכרון אחרון: '+formatDateTime_(sync)+'\nאימות עו״ש: '+formatDateTime_(anchor)+'\n\n'+h.summary;SpreadsheetApp.getUi().alert('סטטוס מערכת',text,SpreadsheetApp.getUi().ButtonSet.OK);return text;}
 function openDashboardV5(){const ss=getSpreadsheet_(),sh=getSheet_('DASHBOARD');ss.setActiveSheet(sh);sh.getRange('A1').activate();}
-function installHourlyTriggerV5(){deleteV5Triggers();ScriptApp.newTrigger('syncRiseUpV5').timeBased().everyHours(1).create();getSpreadsheet_().toast('טריגר סנכרון שעתי הותקן','רואה חשבון',5);}
+function installRiseupSyncTriggerV5(){deleteV5Triggers();ScriptApp.newTrigger('syncRiseUpV5').timeBased().everyHours(V56.SYNC_INTERVAL_HOURS).create();const count=getRiseupSyncTriggerCount_();if(count!==1)throw new Error('התקנת טריגר RiseUp לא הסתיימה במצב תקין; נמצאו '+count+' טריגרים');setConfigParam_('תדירות סנכרון RiseUp',V56.SYNC_INTERVAL_HOURS,'שעות','טריגר אוטומטי מאומת; syncRiseUpV5');getSpreadsheet_().toast('טריגר RiseUp הותקן: כל '+V56.SYNC_INTERVAL_HOURS+' שעות','רואה חשבון',5);return{intervalHours:V56.SYNC_INTERVAL_HOURS,triggerCount:count};}
+function installHourlyTriggerV5(){return installRiseupSyncTriggerV5();}
 function deleteV5Triggers(){ScriptApp.getProjectTriggers().forEach(function(t){if(t.getHandlerFunction()==='syncRiseUpV5')ScriptApp.deleteTrigger(t);});}
+function getRiseupSyncTriggerCount_(){if(typeof ScriptApp==='undefined'||!ScriptApp.getProjectTriggers)return-1;return ScriptApp.getProjectTriggers().filter(function(t){return t.getHandlerFunction()==='syncRiseUpV5';}).length;}
 
 function applyModelIntegrityFixes_(){validateModelLayout_();const goalRow=findGoalRow_();const config=getSheet_('CONFIG');const targetRow=findConfigRow_('יעד כרית ביטחון',false);config.getRange(targetRow,2).setFormula("='יעדים'!B"+goalRow);const annual=getSheet_('ANNUAL_CASHFLOW');annual.getRange('B4').setFormula(endOfMonthFormula_());annual.getRange('B10').setFormula("='יעדים'!B"+goalRow);const plan=getSheet_('FIVE_YEAR_PLAN');const old=plan.getRange('C5').getFormula().replace(/\s/g,'');if(old==='=B15+C15*12')plan.getRange('C5').setFormula('=B5+C15*12');}
 
@@ -228,7 +234,8 @@ function rowsEquivalent_(a,b,compareCols){for(let i=0;i<compareCols;i++){const a
 
 function syncBudget_(month,response){if(!response||typeof response!=='object'||Array.isArray(response))throw new Error('תגובת Budget אינה תקינה');if(response.budgetDate&&response.budgetDate!==month)throw new Error('חודש התקציב אינו תואם לבקשה');const envelopes=Array.isArray(response.envelopes)?response.envelopes:(Array.isArray(response.budget)?response.budget:null);if(!envelopes)throw new Error('תגובת Budget אינה מכילה מערך תקציב תקין; הנתונים הקיימים נשמרו');const raw=stableJson_({month:month,envelopes:envelopes}),hash=sha256_(raw),previous=String(getConfigParam_('cashflowHash אחרון')||'');if(previous===hash)return false;const rows=envelopes.map(function(env){return[month,env.id||env.envelopeId||'',env.type||env.name||'',budgetAmount_(env.originalAmount??0),budgetAmount_(env.balancedAmount??env.amount??0),parseDateSafe_(env.balanceDate),parseDateSafe_(response.lastUpdatedAt||env.lastUpdatedAt),hash,JSON.stringify(env)];});const sh=getSheet_('BUDGET'),previousRows=Math.max(0,sh.getLastRow()-1);ensureGridSize_(sh,rows.length+1,V56.BUDGET_HEADERS.length);if(rows.length)sh.getRange(2,1,rows.length,V56.BUDGET_HEADERS.length).setValues(rows);if(previousRows>rows.length)sh.getRange(rows.length+2,1,previousRows-rows.length,V56.BUDGET_HEADERS.length).clearContent();setConfigParam_('cashflowHash אחרון',hash,'','SHA-256 של תגובת Budget האחרונה');return true;}
 
-function riseupGet_(path,pat){let wait=V56.INITIAL_RETRY_MS;for(let attempt=1;attempt<=V56.MAX_RETRIES;attempt++){let res;try{res=UrlFetchApp.fetch(V56.API_BASE+path,{method:'get',headers:{Authorization:'Bearer '+pat,Accept:'application/json'},muteHttpExceptions:true});}catch(e){if(attempt===V56.MAX_RETRIES)throw new Error('תקלה ברשת בעת פנייה ל-RiseUp');Utilities.sleep(wait);wait*=2;continue;}const code=res.getResponseCode();if(code>=200&&code<300){let obj;try{obj=JSON.parse(res.getContentText());}catch(e){throw new Error('RiseUp החזיר JSON לא תקין');}if(!obj||typeof obj!=='object'||Array.isArray(obj))throw new Error('RiseUp החזיר מבנה תגובה לא תקין');const headers=res.getAllHeaders();let tokenRef='';Object.keys(headers).forEach(function(k){if(k.toLowerCase()==='x-riseup-token-ref')tokenRef=String(headers[k]);});obj._meta=Object.assign({},obj._meta,{tokenRef:tokenRef});return obj;}if(code===401)throw new Error('RiseUp PAT פג/בוטל (401).');if(code===403)throw new Error('RiseUp PAT חסר הרשאה מתאימה (403).');if(code===429||code>=500){if(attempt<V56.MAX_RETRIES){Utilities.sleep(wait);wait*=2;}continue;}throw new Error('RiseUp API החזיר HTTP '+code);}throw new Error('RiseUp API לא הגיב לאחר מספר ניסיונות.');}
+function riseupGet_(path,pat){let wait=V56.INITIAL_RETRY_MS;for(let attempt=1;attempt<=V56.MAX_RETRIES;attempt++){let res;try{res=UrlFetchApp.fetch(V56.API_BASE+path,{method:'get',headers:{Authorization:'Bearer '+pat,Accept:'application/json'},muteHttpExceptions:true});}catch(e){if(attempt===V56.MAX_RETRIES)throw new Error('תקלה ברשת בעת פנייה ל-RiseUp');Utilities.sleep(wait);wait*=2;continue;}const code=res.getResponseCode();const headers=res.getAllHeaders?res.getAllHeaders():{};if(code>=200&&code<300){let obj;try{obj=JSON.parse(res.getContentText());}catch(e){throw new Error('RiseUp החזיר JSON לא תקין');}if(!obj||typeof obj!=='object'||Array.isArray(obj))throw new Error('RiseUp החזיר מבנה תגובה לא תקין');let tokenRef='';Object.keys(headers).forEach(function(k){if(k.toLowerCase()==='x-riseup-token-ref')tokenRef=String(headers[k]);});obj._meta=Object.assign({},obj._meta,{tokenRef:tokenRef});return obj;}if(code===401)throw new Error('RiseUp PAT פג/בוטל (401).');if(code===403)throw new Error('RiseUp PAT חסר הרשאה מתאימה (403).');if(code===429){const retryAfter=riseupRetryAfterSeconds_(headers);throw new Error('RiseUp rate limit (429). הסנכרון נעצר ללא retry אוטומטי'+(retryAfter>0?'; ניתן לנסות שוב בעוד '+retryAfter+' שניות.':'.'));}if(code>=500){if(attempt<V56.MAX_RETRIES){Utilities.sleep(wait);wait*=2;}continue;}throw new Error('RiseUp API החזיר HTTP '+code);}throw new Error('RiseUp API לא הגיב לאחר מספר ניסיונות.');}
+function riseupRetryAfterSeconds_(headers){if(!headers||typeof headers!=='object')return 0;let value='';Object.keys(headers).some(function(k){if(k.toLowerCase()==='retry-after'){value=String(headers[k]||'').trim();return true;}return false;});if(!value)return 0;const seconds=Number(value);if(isFinite(seconds)&&seconds>0)return Math.ceil(seconds);const dateMs=Date.parse(value);if(isFinite(dateMs))return Math.max(1,Math.ceil((dateMs-Date.now())/1000));return 0;}
 function getSyncMonths_(){return syncMonthsAt_(new Date(),V56.SAFETY_MONTHS);}
 
 function refreshDuplicateFormulas_(){const sh=getSheet_('TRANSACTIONS'),lr=sh.getLastRow(),width=Math.max(22,sh.getLastColumn());ensureGridSize_(sh,Math.max(lr,2),width);const headers=sh.getRange(1,1,1,width).getDisplayValues()[0];let col=headers.indexOf('סטטוס כפילות')+1;if(!col){col=headers[21]?width+1:22;ensureGridSize_(sh,Math.max(lr,2),col);sh.getRange(1,col).setValue('סטטוס כפילות');}if(lr<2)return;const rows=sh.getRange(2,1,lr-1,21).getValues(),counts=Object.create(null);rows.forEach(function(r){const k=transactionKeyFromRow_(r);if(k)counts[k]=(counts[k]||0)+1;});const out=rows.map(function(r){const k=transactionKeyFromRow_(r);return[!k?'':counts[k]>1?'⚠️ כפילות':'ייחודי'];});sh.getRange(2,col,out.length,1).setValues(out);}
