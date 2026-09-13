@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * רואה חשבון — Verification Sheet UX V1.0
+ * רואה חשבון — Verification Sheet UX V1.0.1
  * ============================================================
  * עיצוב שמרני וברור לגיליון "אימות נתונים".
  *
@@ -15,7 +15,7 @@
  */
 
 const VERIFICATION_SHEET_UX_V1 = {
-  VERSION: 'V1.0',
+  VERSION: 'V1.0.1',
   SHEET_NAME: 'אימות נתונים',
   MAX_FORMAT_ROWS: 2000,
   EXPECTED_HEADERS: {
@@ -70,15 +70,17 @@ function getVerificationSheetUXStatusV1() {
   const sheet = vsuSheet_(vsuSpreadsheet_());
   const map = vsuHeaderMap_(sheet);
   const lastRow = sheet.getLastRow();
-  const values = lastRow > 1 && map['מצב טיפול']
-    ? sheet.getRange(2, map['מצב טיפול'], lastRow - 1, 1).getDisplayValues().flat()
+  const topicCol = map['נושא'];
+  const treatmentCol = map['מצב טיפול'];
+  const rows = lastRow > 1 && topicCol && treatmentCol
+    ? sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getDisplayValues()
     : [];
 
   const counts = {open:0, waiting:0, refresh:0, later:0, done:0, wrong:0, total:0};
-  values.forEach(function(value) {
-    const t = String(value || '').trim();
-    if (!t) return;
+  rows.forEach(function(row) {
+    if (!String(row[topicCol - 1] || '').trim()) return;
     counts.total++;
+    const t = String(row[treatmentCol - 1] || '').trim();
     if (/נסגר|הושלם|לא פעיל/.test(t)) counts.done++;
     else if (/ממתין למסמך/.test(t)) counts.waiting++;
     else if (/דורש רענון/.test(t)) counts.refresh++;
@@ -130,27 +132,22 @@ function vsuApplyLayout_(sheet) {
     .setWrap(true)
     .setFontSize(10);
 
-  // עמודות העבודה המרכזיות — הסדר נשמר כדי לא לשבור Core/Verification Center.
-  sheet.setColumnWidth(1, 230);  // נושא
-  sheet.setColumnWidth(2, 220);  // נתון A
-  sheet.setColumnWidth(3, 200);  // מקור A
-  sheet.setColumnWidth(4, 220);  // נתון B
-  sheet.setColumnWidth(5, 200);  // מקור B
-  sheet.setColumnWidth(6, 180);  // סטטוס
-  sheet.setColumnWidth(7, 360);  // החלטה תפעולית
-  sheet.setColumnWidth(8, 360);  // מה חסר לאימות
-  sheet.setColumnWidth(9, 190);  // מצב טיפול
-  if (lastCol >= 10) sheet.setColumnWidth(10, 280); // הערת טיפול
-  if (lastCol >= 11) sheet.setColumnWidth(11, 145); // עודכן לאחרונה
+  sheet.setColumnWidth(1, 230);
+  sheet.setColumnWidth(2, 220);
+  sheet.setColumnWidth(3, 200);
+  sheet.setColumnWidth(4, 220);
+  sheet.setColumnWidth(5, 200);
+  sheet.setColumnWidth(6, 180);
+  sheet.setColumnWidth(7, 360);
+  sheet.setColumnWidth(8, 360);
+  sheet.setColumnWidth(9, 190);
+  if (lastCol >= 10) sheet.setColumnWidth(10, 280);
+  if (lastCol >= 11) sheet.setColumnWidth(11, 145);
 
-  // הסתרת פרטי ההשוואה הטכניים — הם נשארים זמינים בלחיצה/פונקציה ייעודית.
   sheet.hideColumns(2, 4);
 
-  // הדגשה קלה לעמודות הפעולה.
   sheet.getRange(2, 7, lastRow - 1, 3).setBackground('#FAFCFE');
   if (lastCol >= 10) sheet.getRange(2, 10, lastRow - 1, 2).setBackground('#F7F9FB');
-
-  // עיצוב תאריך עדכון.
   if (lastCol >= 11) sheet.getRange(2, 11, lastRow - 1, 1).setNumberFormat('dd/mm/yyyy hh:mm');
 }
 
@@ -170,7 +167,7 @@ function vsuApplyTreatmentValidation_(sheet) {
   const rule = SpreadsheetApp.newDataValidation()
     .requireValueInList(VERIFICATION_SHEET_UX_V1.TREATMENT_VALUES, true)
     .setAllowInvalid(true)
-    .setHelpText('בחר מצב טיפול. פעולות מהמרכז האוטומטי יעדכנו את אותה עמודה.')
+    .setHelpText('בחר מצב טיפול. פעולות ממרכז האימות יעדכנו את אותה עמודה.')
     .build();
   sheet.getRange(2, col, rows, 1).setDataValidation(rule);
 }
@@ -189,28 +186,22 @@ function vsuApplyConditionalFormatting_(sheet) {
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenFormulaSatisfied('=REGEXMATCH($' + treatmentLetter + '2,"נסגר|הושלם|לא פעיל")')
     .setBackground('#E8F5E9').setFontColor('#1B5E20').setRanges([body]).build());
-
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenFormulaSatisfied('=$' + treatmentLetter + '2="ממתין למסמך"')
     .setBackground('#FFF3E0').setFontColor('#8A4B08').setRanges([body]).build());
-
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenFormulaSatisfied('=$' + treatmentLetter + '2="דורש רענון"')
     .setBackground('#E3F2FD').setFontColor('#0D47A1').setRanges([body]).build());
-
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenFormulaSatisfied('=REGEXMATCH($' + treatmentLetter + '2,"שגוי|דורש תיקון")')
     .setBackground('#FDECEC').setFontColor('#9B1C1C').setRanges([body]).build());
-
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenFormulaSatisfied('=$' + treatmentLetter + '2="בדיקה מאוחר יותר"')
     .setBackground('#F3E5F5').setFontColor('#6A1B9A').setRanges([body]).build());
-
   rules.push(SpreadsheetApp.newConditionalFormatRule()
     .whenFormulaSatisfied('=OR($' + treatmentLetter + '2="",$' + treatmentLetter + '2="פתוח")')
     .setBackground('#FFFDE7').setFontColor('#5D4B00').setRanges([body]).build());
 
-  // אם הסטטוס המקורי מצביע על פער/חסר, הדגש את תא הסטטוס עצמו.
   if (statusCol) {
     const statusRange = sheet.getRange(2, statusCol, VERIFICATION_SHEET_UX_V1.MAX_FORMAT_ROWS - 1, 1);
     const statusLetter = vsuColumnLetter_(statusCol);
@@ -223,7 +214,7 @@ function vsuApplyConditionalFormatting_(sheet) {
 }
 
 function vsuBuildSummaryPanel_(sheet) {
-  // לוח סיכום מחוץ לטבלת המקור — אינו משנה את מבנה A:K.
+  sheet.getRange('M1:N7').breakApart();
   sheet.getRange('M1:N7').clearContent().clearFormat();
   sheet.getRange('M1:N1').merge();
   sheet.getRange('M1').setValue('מרכז אימות — תמונת מצב')
@@ -239,7 +230,7 @@ function vsuBuildSummaryPanel_(sheet) {
     ['סה״כ נושאים']
   ]).setFontWeight('bold').setBackground('#EAF1F8');
 
-  sheet.getRange('N2').setFormula('=COUNTIF(I2:I,"פתוח")+COUNTIF(I2:I,"*דורש תיקון*")+COUNTBLANK(FILTER(I2:I,A2:A<>""))');
+  sheet.getRange('N2').setFormula('=COUNTIF(I2:I,"פתוח")+COUNTIF(I2:I,"*דורש תיקון*")+COUNTIFS(A2:A,"<>",I2:I,"")');
   sheet.getRange('N3').setFormula('=COUNTIF(I2:I,"ממתין למסמך")');
   sheet.getRange('N4').setFormula('=COUNTIF(I2:I,"דורש רענון")');
   sheet.getRange('N5').setFormula('=COUNTIF(I2:I,"בדיקה מאוחר יותר")');
@@ -255,9 +246,9 @@ function vsuAddHeaderNotes_(sheet) {
   const map = vsuHeaderMap_(sheet);
   const notes = {
     'נושא': 'מה אנחנו מנסים לאמת.',
-    'נתון A': 'מקור/ערך ראשון להשוואה — עמודה טכנית מוסתרת כברירת מחדל.',
+    'נתון A': 'ערך ראשון להשוואה — עמודה טכנית מוסתרת כברירת מחדל.',
     'מקור A': 'מקור הנתון הראשון.',
-    'נתון B': 'מקור/ערך שני להשוואה — עמודה טכנית מוסתרת כברירת מחדל.',
+    'נתון B': 'ערך שני להשוואה — עמודה טכנית מוסתרת כברירת מחדל.',
     'מקור B': 'מקור הנתון השני.',
     'סטטוס': 'מה המערכת יודעת כרגע על אמינות הנתון.',
     'החלטה תפעולית': 'כיצד המערכת משתמשת בנתון עד לסיום האימות.',
@@ -272,7 +263,6 @@ function vsuAddHeaderNotes_(sheet) {
 }
 
 function vsuEnsureOptionalHeaders_(sheet) {
-  const map = vsuHeaderMap_(sheet);
   let nextCol = sheet.getLastColumn() + 1;
   ['הערת טיפול', 'עודכן לאחרונה'].forEach(function(header) {
     if (!vsuHeaderMap_(sheet)[header]) {
