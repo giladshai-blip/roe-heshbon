@@ -25,7 +25,7 @@ function installDashboardV56() {
 
   ensureDashboardV56Grid_(sheet);
   sheet.getCharts().forEach(function(chart){ sheet.removeChart(chart); });
-  sheet.getDataRange().breakApart();
+  sheet.getRange(1,1,sheet.getMaxRows(),sheet.getMaxColumns()).breakApart();
   sheet.clear();
   sheet.clearConditionalFormatRules();
   sheet.setHiddenGridlines(true);
@@ -64,7 +64,7 @@ function clearDashboardV56() {
   const ss = SpreadsheetApp.openById(DASHBOARD_V56.SPREADSHEET_ID);
   const sheet = getDashboardV56Sheet_();
   sheet.getCharts().forEach(function(chart){ sheet.removeChart(chart); });
-  sheet.getDataRange().breakApart();
+  sheet.getRange(1,1,sheet.getMaxRows(),sheet.getMaxColumns()).breakApart();
   sheet.clear();
   sheet.clearConditionalFormatRules();
   sheet.setHiddenGridlines(true);
