@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * רואה חשבון — Security Health Check V1.0.1
+ * רואה חשבון — Security Health Check V1.0.2
  * ============================================================
  * בדיקת אבטחה מקומית ושמרנית לפרויקט Apps Script.
  * - אינה מדפיסה או שומרת סודות.
@@ -8,14 +8,14 @@
  * - אינה מוסיפה הרשאות Drive/OAuth חדשות.
  * - בודקת טריגרים, דליפת סודות לגיליונות, HTTPS במקורות API ומצב רכיבי הליבה.
  *
- * V1.0.1:
- * - syncOfficialDataV4 מוכר כטריגר מערכת לגיטימי.
- * - נבדקת גם כפילות של טריגר המקורות הרשמיים.
+ * V1.0.2:
+ * - syncOfficialDataV4 הוסר מרשימת הטריגרים המוכרים לאחר שאומת כי הפונקציה אינה קיימת.
+ * - הוסר גם מבדיקת כפילויות של handlers לגיטימיים.
  * ============================================================
  */
 
 const SECURITY_V1 = {
-  VERSION: 'V1.0.1',
+  VERSION: 'V1.0.2',
   SECRET_PATTERNS: [
     /riseup_pat_[A-Za-z0-9_-]{16,}/i,
     /AIza[0-9A-Za-z_-]{20,}/,
@@ -31,7 +31,6 @@ const SECURITY_V1 = {
   ],
   KNOWN_TRIGGER_HANDLERS: [
     'syncRiseUpV5',
-    'syncOfficialDataV4',
     'runAutomationEngineV1',
     'onOpenAccountantUIV1'
   ]
@@ -136,7 +135,7 @@ function securityCheckTriggers_(findings, info) {
     }
   });
 
-  ['syncRiseUpV5','syncOfficialDataV4','runAutomationEngineV1','onOpenAccountantUIV1'].forEach(function(handler){
+  ['syncRiseUpV5','runAutomationEngineV1','onOpenAccountantUIV1'].forEach(function(handler){
     const count = counts[handler] || 0;
     if (count > 1) findings.push({severity:'MEDIUM',title:'טריגר כפול',detail:handler + ' מופיע ' + count + ' פעמים.'});
   });
