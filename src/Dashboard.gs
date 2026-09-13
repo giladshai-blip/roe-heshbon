@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * רואה חשבון — Dashboard V5.6.1
+ * רואה חשבון — Dashboard V5.6.2
  * ============================================================
  * דשבורד משפחתי ללא שעונים:
  * - כרטיסי KPI ברורים.
@@ -8,13 +8,14 @@
  * - המלצות ומשימות דינמיות.
  * - אשראי: גם חשיפה משפחתית וגם הכרטיס בעל היחס הגבוה ביותר.
  * - יעד כרית ביטחון ממקור יחיד: גיליון יעדים.
+ * - תיקון KPI שפל 30 יום ללא LET/MAP, ישירות משכבות התזרים והגאנט.
  * ============================================================
  */
 
 const DASHBOARD_V56 = {
   SPREADSHEET_ID: '1a172bDSpW5L4gDXgrZDmh82NBgB2eOM2dUNiyCl1dbM',
   DASHBOARD_SHEET_NAME: 'לוח מחוונים',
-  VERSION: 'Dashboard V5.6.1',
+  VERSION: 'Dashboard V5.6.2',
   HELPER_START_COL: 25,
   HELPER_END_COL: 26
 };
@@ -54,8 +55,8 @@ function installDashboardV56() {
   SpreadsheetApp.flush();
   ss.setActiveSheet(sheet);
   sheet.getRange('A1').activate();
-  setConfigParam_('גרסת דשבורד','V5.6.1','','Dashboard V5.6.1');
-  ss.toast('Dashboard V5.6.1 נבנה בהצלחה', 'רואה חשבון', 8);
+  setConfigParam_('גרסת דשבורד','V5.6.2','','Dashboard V5.6.2');
+  ss.toast('Dashboard V5.6.2 נבנה בהצלחה', 'רואה חשבון', 8);
 }
 
 function refreshDashboardV56() { return installDashboardV56(); }
@@ -255,7 +256,7 @@ function getDashboardV56Sheet_() {
 }
 
 function forecastMinimumFormula_() {
-  return '=IFERROR(LET(days,SEQUENCE(30,1,TODAY(),1),vals,MAP(days,LAMBDA(day,IFERROR(INDEX(FILTER(\'תזרים\'!G2:G32,\'תזרים\'!A2:A32=day,ISNUMBER(\'תזרים\'!G2:G32)),1),IFERROR(INDEX(FILTER(\'גאנט תזרים שנתי\'!I16:I380,\'גאנט תזרים שנתי\'!A16:A380=day,ISNUMBER(\'גאנט תזרים שנתי\'!I16:I380)),1),NA())))),IF(COUNT(vals)=30,MIN(vals),"לא זמין")),"לא זמין")';
+  return '=IFERROR(MIN(FILTER({\'תזרים\'!G2:G400;\'גאנט תזרים שנתי\'!I16:I400},{\'תזרים\'!A2:A400;\'גאנט תזרים שנתי\'!A16:A400}>=TODAY(),{\'תזרים\'!A2:A400;\'גאנט תזרים שנתי\'!A16:A400}<TODAY()+30,ISNUMBER({\'תזרים\'!G2:G400;\'גאנט תזרים שנתי\'!I16:I400}))),"לא זמין")';
 }
 
 function guardDashboardV561_(sheet) {
