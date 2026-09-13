@@ -2,19 +2,26 @@
 
 מערכת פיננסית משפחתית מבוססת Google Sheets + Google Apps Script + RiseUp API.
 
-## גרסה נוכחית
-V5.2
+## מצב גרסאות
+- `main` = גרסה יציבה בלבד.
+- `dev` = מועמדת V5.6 לבדיקה.
+- Core חי לפני התקנת V5.6: V5.4.
+- Dashboard חי לפני התקנת V5.6: V5.5.
 
-## קבצים
-- `src/Code.gs` — הקוד המלא הנוכחי להדבקה ב-Google Apps Script.
-- `versions/riseup-sync-v5.2.gs` — עותק גרסה היסטורי של V5.2.
+## קבצים ב-dev
+- `src/CodeV56.gs` — קוד Core V5.6 המלא להחלפת `Code.gs` ב-Google Apps Script לאחר אישור ידני.
+- `src/Dashboard.gs` — Dashboard V5.6 מלא ללא שעונים.
+- `src/Code.gs` — גרסת הפיתוח הקודמת, נשמרת זמנית לצורך rollback עד בדיקת V5.6.
+- `docs/project-instructions.md` — ההנחיה המלאה; מקור הסמכות הוא `main`.
 
-## עקרונות
-- קוד מלא בכל גרסה, לא patch.
-- סנכרון RiseUp עם upsert ומניעת כפילויות.
-- יתרת עו״ש מחושבת מעוגן מאומת + תנועות checkingAccount חדשות.
-- Health Check, יומן סנכרון, סריקת אימות, טריגר שעתי.
-- דשבורד RTL בעברית עם 4 שעוני Gauge.
+## V5.6
+- Health Check סמנטי ליתרת עו״ש, סוף חודש, שפל 30 יום, פתיחת הגאנט ומקורות KPI.
+- תחזיות אינן תלויות בדשבורד.
+- יעד כרית הביטחון מגיע ממקור יחיד בגיליון `יעדים`.
+- `firstSeenAt` לעסקאות לצמצום בעיית date-only סביב עוגן יתרה.
+- Budget תומך גם `id` וגם `envelopeId`.
+- יומן הסנכרון נשמר ומורחב ללא מחיקת היסטוריה.
+- הדשבורד מציג יתרת עו״ש כ־**מחושבת**, אשראי משפחתי וכרטיס בסיכון הגבוה ביותר.
 
 ## אבטחה
-אין לשמור PAT או סודות בקוד או ב-GitHub. את `RISEUP_PAT` יש לשמור ב-Script Properties בלבד.
+אין לשמור PAT, סיסמאות, tokens או סודות בקוד או ב-GitHub. `RISEUP_PAT` נשמר ב-Script Properties בלבד.
