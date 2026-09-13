@@ -1,48 +1,41 @@
 # רואה חשבון
 
-מערכת פיננסית משפחתית מבוססת Google Sheets + Google Apps Script + RiseUp API.
+מערכת פיננסית משפחתית מבוססת Google Sheets, Google Apps Script ו־RiseUp API.
 
 ## גרסה בפיתוח
-V5.3 ב־`dev`.
 
-`main` נשאר יציב על V5.2 עד לסיום Smoke Test חי ב־Google Apps Script.
+Core **V5.7.0** ו־Dashboard **V5.7.0** נשמרו ב־`dev`.
 
-## מבנה קוד V5.3
-הקוד פוצל למודולים תחת `src/`:
-- `00_Config.gs` — קונפיגורציה, cache וגישה ל־Sheets/Config.
-- `10_ApiTransactions.gs` — RiseUp API, batching, retries ו־transaction upsert.
-- `20_BudgetCashflow.gs` — Budget, יתרת עו״ש ותחזיות.
-- `30_DashboardHealth.gs` — Dashboard, RTL ו־Health Checks.
-- `40_App.gs` — entry points, תפריט, orchestration ו־triggers.
-- `90_Utils.gs` — utilities משותפים.
+`main` נשאר יציב על V5.2 עד לבדיקת קבלה חיה ב־Google Apps Script ובגיליון המקור.
 
-ה־entry points הציבוריים של V5 נשמרו כדי לשמור תאימות לתפריט ולטריגרים קיימים.
+## שני קובצי Apps Script בלבד
 
-## שיפורי ביצועים V5.3
-- Cache ל־Spreadsheet, גיליונות ומפת `הגדרות` במהלך execution יחיד.
-- `UrlFetchApp.fetchAll()` בקבוצות מבוקרות במקום קריאות היסטוריות סדרתיות בלבד.
-- כתיבת עדכוני עסקאות בקבוצות רציפות במקום `setValues` נפרד לכל שורה.
-- רענון נוסחאות כפילות רק לשורות חדשות במהלך sync רגיל.
-- נוסחת יתרת עו״ש משתמשת בטווחים תחומים ודינמיים במקום עמודות שלמות.
-- Health Check מהיר בסנכרון שוטף ו־Deep Health Check בבדיקה ידנית/setup.
-- RTL מיושם רק על טווח בשימוש ולא על כל ה־grid המקסימלי.
+- `src/Code.gs` — Core מלא: סנכרון, upsert, תחזיות, אימות, Health Check, טריגרים ובדיקות Runtime.
+- `src/Dashboard.gs` — Dashboard מלא: KPI, משימות, עדכניות נתונים, התראה פעילה ומרווח מסגרת עו״ש.
 
-## בדיקות
-- `tests/code-v5.3-regression-report.md` — 11/11 PASS בבדיקות syntax/מבנה/מוקים.
-- הבדיקות אינן מחליפות Smoke Test חי מול Google Apps Script + RiseUp API.
+קובצי הפיתוח המודולריים הישנים הוסרו מ־`dev`. ההיסטוריה נשמרת ב־Git וניתנת לשחזור.
 
-## Skills וסוכנים
-- `agents/` — Family CFO ו־Sub-agents.
-- `skills/` — Router ו־Skills פיננסיים.
-- כולם כפופים ל־`docs/project-instructions.md` שב־`main`.
+## שיפורי V5.7
 
-## עקרונות
-- `main` הוא קוד יציב בלבד; `dev` לפיתוח ובדיקה.
-- קוד מלא ולא patch בלבד.
-- סנכרון RiseUp עם upsert ומניעת כפילויות.
-- יתרת עו״ש מחושבת מעוגן מאומת + תנועות checkingAccount חדשות.
-- Match → Update → Create ו־anti-double-counting.
-- שינויי Runtime משמעותיים מקודמים רק לאחר בדיקה מתאימה.
+- מקור קוד קנוני שתואם לגרסה הפעילה שנמסרה.
+- בדיקות Runtime מתוך תפריט המערכת באמצעות `runRuntimeSelfTestV57`.
+- בדיקת מבנה גיליונות, סכימה, כפילויות, תקינות עסקאות, כיסוי תחזית ו־KPI.
+- הצגת מרווח מסגרת העו״ש בנקודת השפל.
+- הצגת ההתראה הפתוחה המרכזית בדשבורד.
+- סימון מפורש שמדד האשראי הוא יחס חיוב קרוב למסגרת ולא ניצול כולל.
+- שמירת תאימות לפונקציות V5 הקיימות ולטריגר `syncRiseUpV5`.
+
+## התקנה ובדיקה
+
+1. החלף את תוכן `Code.gs` בקובץ `src/Code.gs` מ־`dev`.
+2. החלף את תוכן `Dashboard.gs` בקובץ `src/Dashboard.gs` מ־`dev`.
+3. הרץ `setupV57`.
+4. הרץ `runRuntimeSelfTestV57`.
+5. הרץ `runV5Now` ולאחר מכן `healthCheckV5`.
+6. אמת מול הבנק את יתרת העו״ש ואת מרווח המסגרת.
+
+אין לקדם ל־`main` לפני שכל הבדיקות החיות עברו והיתרות נבדקו.
 
 ## אבטחה
-אין לשמור PAT או סודות בקוד או ב-GitHub. את `RISEUP_PAT` יש לשמור ב-Script Properties בלבד.
+
+אין לשמור PAT, סיסמאות או סודות בקוד או ב־GitHub. את `RISEUP_PAT` שומרים ב־Script Properties בלבד.
