@@ -11,9 +11,10 @@ test('security module never logs raw RiseUp PAT', () => {
   assert.doesNotMatch(security, /setValue\(pat\)/);
 });
 
-test('security module checks installed trigger duplication', () => {
+test('security module checks installed trigger duplication and known handlers', () => {
   assert.match(security, /getProjectTriggers\(\)/);
   assert.match(security, /syncRiseUpV5/);
+  assert.match(security, /syncOfficialDataV4/);
   assert.match(security, /runAutomationEngineV1/);
   assert.match(security, /onOpenAccountantUIV1/);
 });
