@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f6f8fb;color:#1f2937}
+    .wrap{padding:14px}
+    h1{font-size:20px;margin:0 0 6px}
+    .sub{font-size:12px;color:#667085;margin-bottom:12px}
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+    button{border:0;border-radius:9px;padding:8px 10px;cursor:pointer;font-size:12px}
+    .tab{background:#e8edf5;color:#23324d}.tab.active{background:#16324f;color:#fff}
+    .card{background:#fff;border:1px solid #e3e8ef;border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+    .title{font-weight:700;font-size:14px;margin-bottom:6px}
+    .status{display:inline-block;font-size:11px;background:#f2f4f7;padding:4px 7px;border-radius:99px;margin-bottom:8px}
+    .label{font-size:11px;color:#667085;margin-top:7px}.value{font-size:12px;line-height:1.45;white-space:pre-wrap}
+    .actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+    .ok{background:#dff4e8}.wait{background:#fff0cf}.later{background:#eef0ff}.bad{background:#fde4e4}.refresh{background:#e6f0ff}.reopen{background:#f0f0f0}
+    textarea{width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:8px;padding:7px;font-size:12px;margin-top:8px;min-height:54px}
+    .summary{background:#eef5fb;border-radius:10px;padding:9px;margin-bottom:12px;font-size:12px}
+    .empty{padding:24px;text-align:center;color:#667085}
+    .loading{padding:20px;text-align:center}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .refreshBtn{background:#e8edf5;color:#16324f}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1>מרכז אימות</h1>
+      <div class="sub">עוברים רק על מה שעדיין דורש טיפול</div>
+    </div>
+    <button class="refreshBtn" onclick="load(currentFilter)">רענן</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-filter="open" onclick="setFilter('open',this)">פתוחים</button>
+    <button class="tab" data-filter="waiting" onclick="setFilter('waiting',this)">ממתינים למסמך</button>
+    <button class="tab" data-filter="refresh" onclick="setFilter('refresh',this)">דורשים רענון</button>
+    <button class="tab" data-filter="later" onclick="setFilter('later',this)">אחר כך</button>
+    <button class="tab" data-filter="done" onclick="setFilter('done',this)">הושלמו</button>
+  </div>
+
+  <div id="summary" class="summary">טוען...</div>
+  <div id="list" class="loading">טוען נתונים...</div>
+</div>
+<script>
+let currentFilter='open';
+function setFilter(filter,el){
+  currentFilter=filter;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  load(filter);
+}
+function load(filter){
+  document.getElementById('list').innerHTML='<div class="loading">טוען נתונים...</div>';
+  google.script.run.withSuccessHandler(render).withFailureHandler(showError).getVerificationCenterDataV1(filter);
+}
+function render(data){
+  const c=data.counts||{};
+  document.getElementById('summary').textContent=
+    'פתוחים: '+(c.open||0)+' | ממתינים למסמך: '+(c.waiting||0)+' | דורשים רענון: '+(c.refresh||0)+' | הושלמו: '+(c.done||0);
+  const list=document.getElementById('list');
+  if(!data.items||!data.items.length){list.innerHTML='<div class="empty">אין פריטים בקבוצה הזאת.</div>';return;}
+  list.innerHTML=data.items.map(cardHtml).join('');
+}
+function esc(v){return String(v||'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]));}
+function cardHtml(x){
+  return `<div class="card" id="row-${x.row}">
+    <div class="title">${esc(x.topic)}</div>
+    <div class="status">${esc(x.treatment)}</div>
+    ${x.status?`<div class="label">מצב נוכחי</div><div class="value">${esc(x.status)}</div>`:''}
+    ${x.decision?`<div class="label">מה המערכת עושה כרגע</div><div class="value">${esc(x.decision)}</div>`:''}
+    <div class="label">מה צריך ממך</div><div class="value">${esc(x.missing||'לא נדרשת פעולה נוספת')}</div>
+    <textarea id="note-${x.row}" placeholder="הערה אופציונלית">${esc(x.note||'')}</textarea>
+    <div class="actions">
+      <button class="ok" onclick="act(${x.row},'verified')">✅ אימתתי</button>
+      <button class="wait" onclick="act(${x.row},'missing_document')">📎 חסר מסמך</button>
+      <button class="later" onclick="act(${x.row},'later')">⏳ אחר כך</button>
+      <button class="bad" onclick="act(${x.row},'wrong')">❌ הנתון שגוי</button>
+      <button class="refresh" onclick="act(${x.row},'refresh')">🔄 דורש רענון</button>
+      ${x.bucket==='done'?`<button class="reopen" onclick="act(${x.row},'reopen')">פתח מחדש</button>`:''}
+    </div>
+  </div>`;
+}
+function act(row,action){
+  const note=document.getElementById('note-'+row)?.value||'';
+  const card=document.getElementById('row-'+row);
+  if(card)card.style.opacity='.5';
+  google.script.run.withSuccessHandler(()=>load(currentFilter)).withFailureHandler(showError).verificationCenterActionV1(row,action,note);
+}
+function showError(err){
+  document.getElementById('list').innerHTML='<div class="empty">שגיאה: '+esc(err&&err.message?err.message:err)+'</div>';
+}
+load(currentFilter);
+</script>
+</body>
+</html>
