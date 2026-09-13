@@ -72,7 +72,6 @@ function clearDashboardV56() {
   ss.toast('לוח המחוונים נוקה', 'רואה חשבון', 5);
 }
 
-// תאימות לשמות קודמים.
 function installDashboardV55() { return installDashboardV56(); }
 function refreshDashboardV55() { return refreshDashboardV56(); }
 function clearDashboardV55() { return clearDashboardV56(); }
@@ -256,7 +255,7 @@ function getDashboardV56Sheet_() {
 }
 
 function forecastMinimumFormula_() {
-  return '=IFERROR(LET(d,{\'תזרים\'!A2:A32;\'גאנט תזרים שנתי\'!A16:A380},v,{\'תזרים\'!G2:G32;\'גאנט תזרים שנתי\'!I16:I380},valid,(d>=TODAY())*(d<TODAY()+30)*ISNUMBER(v),IF(COUNTUNIQUE(FILTER(d,valid))=30,MIN(FILTER(v,valid)),"לא זמין")),"לא זמין")';
+  return '=IFERROR(LET(days,SEQUENCE(30,1,TODAY(),1),vals,MAP(days,LAMBDA(day,IFERROR(INDEX(FILTER(\'תזרים\'!G2:G32,\'תזרים\'!A2:A32=day,ISNUMBER(\'תזרים\'!G2:G32)),1),IFERROR(INDEX(FILTER(\'גאנט תזרים שנתי\'!I16:I380,\'גאנט תזרים שנתי\'!A16:A380=day,ISNUMBER(\'גאנט תזרים שנתי\'!I16:I380)),1),NA())))),IF(COUNT(vals)=30,MIN(vals),"לא זמין")),"לא זמין")';
 }
 
 function guardDashboardV561_(sheet) {
