@@ -25,7 +25,7 @@ function installDashboardV56() {
 
   ensureDashboardV56Grid_(sheet);
   sheet.getCharts().forEach(function(chart){ sheet.removeChart(chart); });
-  sheet.getRange(1,1,sheet.getMaxRows(),sheet.getMaxColumns()).breakApart();
+  unmergeDashboardV56_(sheet);
   sheet.clear();
   sheet.clearConditionalFormatRules();
   sheet.setHiddenGridlines(true);
@@ -64,7 +64,7 @@ function clearDashboardV56() {
   const ss = SpreadsheetApp.openById(DASHBOARD_V56.SPREADSHEET_ID);
   const sheet = getDashboardV56Sheet_();
   sheet.getCharts().forEach(function(chart){ sheet.removeChart(chart); });
-  sheet.getRange(1,1,sheet.getMaxRows(),sheet.getMaxColumns()).breakApart();
+  unmergeDashboardV56_(sheet);
   sheet.clear();
   sheet.clearConditionalFormatRules();
   sheet.setHiddenGridlines(true);
@@ -104,7 +104,6 @@ function buildDashboardV56HelperData_(sheet) {
   sheet.getRange('Z10').setFormula('=IFERROR(INDEX(\'הגדרות\'!B:B,MATCH("תאריך רענון אחרון",\'הגדרות\'!A:A,0)),"")');
   sheet.getRange('Z11').setFormula('=IFERROR(INDEX(\'הגדרות\'!B:B,MATCH("תאריך ושעת יתרת עו״ש",\'הגדרות\'!A:A,0)),"")');
   sheet.getRange('Z12').setFormula('=IFERROR(MAX('+ratios+')*100,"לא זמין")');
-  // Filter labels and ratios using identical predicates; gaps do not shift the label.
   sheet.getRange('Z13').setFormula('=IFERROR(INDEX(FILTER('+cards+'C2:C,'+eligible+'),MATCH(MAX('+ratios+'),'+ratios+',0)),"לא זמין")');
   sheet.getRange('Z14').setFormula(numeric('INDEX(\'הגדרות\'!B:B,MATCH("יעד ניצול אשראי",\'הגדרות\'!A:A,0))*100'));
   sheet.getRange('Z2:Z4').setNumberFormat('#,##0.00 ₪');
@@ -116,17 +115,9 @@ function buildDashboardV56HelperData_(sheet) {
 
 function buildDashboardV56Layout_(sheet) {
   mergeAndSetV56_(sheet,'A1:P2','המצב הכספי שלנו');
-  sheet.getRange('A1:P2')
-    .setBackground('#16324F').setFontColor('#FFFFFF').setFontSize(22)
-    .setFontWeight('bold').setHorizontalAlignment('center').setVerticalAlignment('middle');
-
-  mergeAndSetV56_(
-    sheet,'A3:P3',
-    'תמונה פשוטה וברורה של המצב — יתרת העו״ש מחושבת מעוגן מאומת ועסקאות מסונכרנות, לא יתרה חיה מהבנק'
-  );
-  sheet.getRange('A3:P3')
-    .setBackground('#EAF1F8').setFontColor('#38506A').setFontSize(10)
-    .setHorizontalAlignment('center');
+  sheet.getRange('A1:P2').setBackground('#16324F').setFontColor('#FFFFFF').setFontSize(22).setFontWeight('bold').setHorizontalAlignment('center').setVerticalAlignment('middle');
+  mergeAndSetV56_(sheet,'A3:P3','תמונה פשוטה וברורה של המצב — יתרת העו״ש מחושבת מעוגן מאומת ועסקאות מסונכרנות, לא יתרה חיה מהבנק');
+  sheet.getRange('A3:P3').setBackground('#EAF1F8').setFontColor('#38506A').setFontSize(10).setHorizontalAlignment('center');
 
   buildMetricCardV56_(sheet,'A5:D8','יתרת עו״ש מחושבת','=Z2','#,##0 ₪');
   buildMetricCardV56_(sheet,'E5:H8','סוף חודש צפוי','=Z3','#,##0 ₪');
@@ -135,45 +126,27 @@ function buildDashboardV56Layout_(sheet) {
 
   buildSectionHeaderV56_(sheet,'A10:H10','מה זה אומר');
   mergeAndSetV56_(sheet,'A11:H14','');
-  sheet.getRange('A11').setFormula(
-    '=IF($Z$3<0,"אם לא נעשה שינוי, סוף החודש צפוי להיות במינוס של "&TEXT(ABS($Z$3),"#,##0 ₪")&". נקודת השפל הצפויה ב־30 יום היא "&TEXT($Z$4,"#,##0 ₪")&".",IF($Z$9<0,"התקציב החודשי עדיין שלילי ב־"&TEXT(ABS($Z$9),"#,##0 ₪")&" לחודש.","התזרים החודשי מאוזן או חיובי. אפשר לעבור בהדרגה לבניית כרית ביטחון וחיסכון."))'
-  );
+  sheet.getRange('A11').setFormula('=IF($Z$3<0,"אם לא נעשה שינוי, סוף החודש צפוי להיות במינוס של "&TEXT(ABS($Z$3),"#,##0 ₪")&". נקודת השפל הצפויה ב־30 יום היא "&TEXT($Z$4,"#,##0 ₪")&".",IF($Z$9<0,"התקציב החודשי עדיין שלילי ב־"&TEXT(ABS($Z$9),"#,##0 ₪")&" לחודש.","התזרים החודשי מאוזן או חיובי. אפשר לעבור בהדרגה לבניית כרית ביטחון וחיסכון."))');
   styleTextPanelV56_(sheet.getRange('A11:H14'));
 
   buildSectionHeaderV56_(sheet,'I10:P10','המלצה מרכזית');
   mergeAndSetV56_(sheet,'I11:P14','');
-  sheet.getRange('I11').setFormula(
-    '=IF($Z$3<0,"המטרה הראשונה היא לצמצם את הפער עד סוף החודש בלי להגדיל אשראי חדש. בדקו הוצאות משתנות, תשלומים שניתן לדחות וחיובים שניתן להזיז למועד בטוח יותר.",IF($Z$9<0,"המטרה הבאה היא לסגור גירעון חודשי של "&TEXT(ABS($Z$9),"#,##0 ₪")&".",IF($Z$7<$Z$6,"התזרים יציב. עכשיו בונים כרית ביטחון. חסרים "&TEXT($Z$8,"#,##0 ₪")&" ליעד.","המצב יציב יחסית. אפשר להתקדם לחיסכון והשקעות בהתאם לסדר העדיפויות.")))'
-  );
+  sheet.getRange('I11').setFormula('=IF($Z$3<0,"המטרה הראשונה היא לצמצם את הפער עד סוף החודש בלי להגדיל אשראי חדש. בדקו הוצאות משתנות, תשלומים שניתן לדחות וחיובים שניתן להזיז למועד בטוח יותר.",IF($Z$9<0,"המטרה הבאה היא לסגור גירעון חודשי של "&TEXT(ABS($Z$9),"#,##0 ₪")&" לחודש.",IF($Z$7<$Z$6,"התזרים יציב. עכשיו בונים כרית ביטחון. חסרים "&TEXT($Z$8,"#,##0 ₪")&" ליעד.","המצב יציב יחסית. אפשר להתקדם לחיסכון והשקעות בהתאם לסדר העדיפויות.")))');
   styleTextPanelV56_(sheet.getRange('I11:P14'));
   sheet.getRange('I11:P14').setBackground('#FFF7E6');
 
   buildSectionHeaderV56_(sheet,'A16:P16','משימות לביצוע');
-  buildTaskRowV56_(
-    sheet,17,'1','=IF($Z$3<0,"דחוף","מעקב")',
-    '=IF($Z$3<0,"עברו על ההוצאות עד סוף החודש וסמנו לפחות 3 הוצאות שניתן לדחות, לצמצם או לבטל.","שמרו על מסגרת ההוצאות עד סוף החודש.")'
-  );
-  buildTaskRowV56_(
-    sheet,18,'2','=IF($Z$9<0,"חשוב","בוצע")',
-    '=IF($Z$9<0,"מצאו שיפור קבוע של "&TEXT(ABS($Z$9),"#,##0 ₪")&" לחודש באמצעות צמצום הוצאה או תוספת הכנסה.","המאזן החודשי אינו שלילי כרגע — המשיכו לעקוב.")'
-  );
-  buildTaskRowV56_(
-    sheet,19,'3','=IF($Z$12>=50,"דחוף",IF($Z$12>=30,"חשוב","תקין"))',
-    '=IF($Z$12>=30,"היעד הוא פחות מ-30% לכל כרטיס. הכרטיס בעל היחס הגבוה ביותר הוא "&$Z$13&" עם "&TEXT($Z$12,"0.0")&"%. הימנעו מרכישות חדשות בתשלומים בכרטיס זה עד לירידה מתחת ליעד.","כל הכרטיסים המאומתים מתחת ליעד 30%.")'
-  );
-  buildTaskRowV56_(
-    sheet,20,'4','=IF($Z$8>0,"בהמשך","בוצע")',
-    '=IF($Z$8>0,"לאחר איזון התזרים, התחילו לבנות כרית ביטחון. חסרים ליעד "&TEXT($Z$8,"#,##0 ₪")&".","יעד כרית הביטחון הושלם.")'
-  );
+  buildTaskRowV56_(sheet,17,'1','=IF($Z$3<0,"דחוף","מעקב")','=IF($Z$3<0,"עברו על ההוצאות עד סוף החודש וסמנו לפחות 3 הוצאות שניתן לדחות, לצמצם או לבטל.","שמרו על מסגרת ההוצאות עד סוף החודש.")');
+  buildTaskRowV56_(sheet,18,'2','=IF($Z$9<0,"חשוב","בוצע")','=IF($Z$9<0,"מצאו שיפור קבוע של "&TEXT(ABS($Z$9),"#,##0 ₪")&" לחודש באמצעות צמצום הוצאה או תוספת הכנסה.","המאזן החודשי אינו שלילי כרגע — המשיכו לעקוב.")');
+  buildTaskRowV56_(sheet,19,'3','=IF($Z$12>=50,"דחוף",IF($Z$12>=30,"חשוב","תקין"))','=IF($Z$12>=30,"היעד הוא פחות מ-30% לכל כרטיס. הכרטיס בעל היחס הגבוה ביותר הוא "&$Z$13&" עם "&TEXT($Z$12,"0.0")&"%. הימנעו מרכישות חדשות בתשלומים בכרטיס זה עד לירידה מתחת ליעד.","כל הכרטיסים המאומתים מתחת ליעד 30%.")');
+  buildTaskRowV56_(sheet,20,'4','=IF($Z$8>0,"בהמשך","בוצע")','=IF($Z$8>0,"לאחר איזון התזרים, התחילו לבנות כרית ביטחון. חסרים ליעד "&TEXT($Z$8,"#,##0 ₪")&".","יעד כרית הביטחון הושלם.")');
 
   buildSectionHeaderV56_(sheet,'A22:H22','יציבות פיננסית');
   mergeAndSetV56_(sheet,'A23:D23','אשראי');
   mergeAndSetV56_(sheet,'E23:H23','כרית ביטחון');
   sheet.getRange('A24:D26').merge();
   sheet.getRange('E24:H26').merge();
-  sheet.getRange('A24').setFormula(
-    '="משפחתי: "&TEXT($Z$5,"0.0")&"% | מקסימום בכרטיס: "&TEXT($Z$12,"0.0")&"% — "&$Z$13'
-  );
+  sheet.getRange('A24').setFormula('="משפחתי: "&TEXT($Z$5,"0.0")&"% | מקסימום בכרטיס: "&TEXT($Z$12,"0.0")&"% — "&$Z$13');
   sheet.getRange('E24').setFormula('=TEXT($Z$7,"#,##0 ₪")&" מתוך "&TEXT($Z$6,"#,##0 ₪")');
   styleMiniMetricV56_(sheet.getRange('A23:D26'));
   styleMiniMetricV56_(sheet.getRange('E23:H26'));
@@ -189,9 +162,7 @@ function buildDashboardV56Layout_(sheet) {
   styleMiniMetricV56_(sheet.getRange('M23:P26'));
 
   mergeAndSetV56_(sheet,'A28:P29','סדר העדיפויות: איזון חודשי → יציאה מהמינוס → כרית ביטחון → חיסכון → השקעות');
-  sheet.getRange('A28:P29')
-    .setBackground('#F2F5F8').setFontColor('#536273').setFontSize(10)
-    .setFontWeight('bold').setHorizontalAlignment('center').setVerticalAlignment('middle');
+  sheet.getRange('A28:P29').setBackground('#F2F5F8').setFontColor('#536273').setFontSize(10).setFontWeight('bold').setHorizontalAlignment('center').setVerticalAlignment('middle');
 }
 
 function configureDashboardV56Grid_(sheet) {
@@ -263,6 +234,12 @@ function mergeAndSetV56_(sheet,rangeA1,value) {
   range.merge();
   range.getCell(1,1).setValue(value);
   return range;
+}
+
+function unmergeDashboardV56_(sheet) {
+  const whole=sheet.getRange(1,1,sheet.getMaxRows(),sheet.getMaxColumns());
+  const merged=whole.getMergedRanges();
+  merged.forEach(function(range){ range.breakApart(); });
 }
 
 function ensureDashboardV56Grid_(sheet) {
