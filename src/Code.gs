@@ -1,11 +1,12 @@
 /**
  * ============================================================
- * רואה חשבון — Core V5.6.1
+ * רואה חשבון — Core V5.6.2
  * ============================================================
  * קובץ מלא להחלפת Code.gs ב-Google Apps Script.
  *
- * עיקרי V5.6.1:
+ * עיקרי V5.6.2:
  * - תיקון כיוון עסקאות RiseUp לפי isIncome הרשמי לפני כל fallback אחר.
+ * - upsert עסקאות בכתיבת batch אחת כדי למנוע timeout בסנכרון היסטורי.
  * - Health Check מזהה דפוס חשוד שבו רוב עסקאות האשראי מסווגות כהכנסה.
  * - Health Check סמנטי, לא רק בדיקת #REF.
  * - ביטול תלות של תחזיות בדשבורד.
@@ -19,7 +20,7 @@
  */
 
 const V56 = {
-  VERSION: 'V5.6.1',
+  VERSION: 'V5.6.2',
   DASHBOARD_VERSION: 'V5.6',
   SPREADSHEET_ID: '1a172bDSpW5L4gDXgrZDmh82NBgB2eOM2dUNiyCl1dbM',
   TIMEZONE: 'Asia/Jerusalem',
@@ -78,14 +79,14 @@ function onOpen() {
         .addItem('ניקוי הדשבורד', 'clearDashboardV56')
     )
     .addSeparator()
-    .addItem('🩺 בדיקת מערכת V5.6.1', 'healthCheckV5')
+    .addItem('🩺 בדיקת מערכת V5.6.2', 'healthCheckV5')
     .addItem('🔍 בדיקת כפילויות', 'checkDuplicatesV5')
     .addItem('✅ סריקת סטטוסי אימות', 'scanVerificationStatusV5')
     .addItem('ℹ️ סטטוס מערכת', 'showSystemStatusV5')
     .addSeparator()
     .addSubMenu(
       ui.createMenu('⚙️ הגדרות מערכת')
-        .addItem('🛠 התקנת / שדרוג V5.6.1', 'setupV56')
+        .addItem('🛠 התקנת / שדרוג V5.6.2', 'setupV56')
         .addItem('⏰ התקנת סנכרון שעתי', 'installHourlyTriggerV5')
         .addItem('🗑 מחיקת טריגר', 'deleteV5Triggers')
     )
@@ -108,7 +109,7 @@ function setupV56() {
     refreshDuplicateFormulas_();
     formatSystemSheetsRTL_();
 
-    setConfigParam_('גרסת מערכת', V56.VERSION, '', 'Core V5.6.1');
+    setConfigParam_('גרסת מערכת', V56.VERSION, '', 'Core V5.6.2');
     setConfigParam_('גרסת דשבורד', V56.DASHBOARD_VERSION, '', 'Dashboard V5.6');
     setConfigParam_('מקור עסקאות', 'get_transactions', '', 'RiseUp External API');
     setConfigParam_('מפתח upsert', 'transactionId + fingerprint fallback', '', 'transactionId מפתח ראשי');
@@ -120,11 +121,11 @@ function setupV56() {
 
     const health = healthCheckV56_();
     logSync_({
-      action: 'V5.6.1 Setup', status: health.ok ? 'SUCCESS' : 'WARNING', records: 0,
-      message: 'התקנת Core V5.6.1 + בדיקות שלמות', syncState: 'SETUP', health: health.summary
+      action: 'V5.6.2 Setup', status: health.ok ? 'SUCCESS' : 'WARNING', records: 0,
+      message: 'התקנת Core V5.6.2 + בדיקות שלמות', syncState: 'SETUP', health: health.summary
     });
     getSpreadsheet_().toast(
-      health.ok ? 'V5.6.1 הותקן ונבדק בהצלחה' : 'V5.6.1 הותקן עם אזהרות — הפעל Health Check',
+      health.ok ? 'V5.6.2 הותקן ונבדק בהצלחה' : 'V5.6.2 הותקן עם אזהרות — הפעל Health Check',
       'רואה חשבון', 8
     );
     return health;
@@ -159,7 +160,7 @@ function syncRiseUpV5() {
   const startMs = Date.now();
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) {
-    logSync_({action:'RiseUp Sync V5.6.1',status:'SKIPPED',records:0,message:'סנכרון אחר כבר פעיל',syncState:'LOCKED'});
+    logSync_({action:'RiseUp Sync V5.6.2',status:'SKIPPED',records:0,message:'סנכרון אחר כבר פעיל',syncState:'LOCKED'});
     return null;
   }
   const metrics = {
@@ -194,7 +195,7 @@ function syncRiseUpV5() {
     metrics.balanceAfter = getAutomaticBankBalance_();
     const health = healthCheckV56_();
     logSync_({
-      time:startedAt, action:'RiseUp Sync V5.6.1', status:health.ok?'SUCCESS':'WARNING', records:all.length,
+      time:startedAt, action:'RiseUp Sync V5.6.2', status:health.ok?'SUCCESS':'WARNING', records:all.length,
       message:'חודשים: '+metrics.months.join(', ')+' | חדשות: '+metrics.inserted+' | עודכנו: '+metrics.updated+' | ללא שינוי: '+metrics.unchanged+' | כפילויות API: '+metrics.duplicates,
       tokenRef:metrics.tokenRef, riseupLastUpdatedAt:metrics.riseupLastUpdatedAt,
       syncState:metrics.budgetUpdated?'UPDATED':'SKIPPED_UNCHANGED', durationMs:Date.now()-startMs,
@@ -204,7 +205,7 @@ function syncRiseUpV5() {
     showSyncToast_(metrics, health);
     return {success:health.ok, metrics:metrics, health:health};
   } catch (e) {
-    logSync_({time:startedAt,action:'RiseUp Sync V5.6.1',status:'ERROR',records:0,message:String(e.message||e),durationMs:Date.now()-startMs,health:'ERROR'});
+    logSync_({time:startedAt,action:'RiseUp Sync V5.6.2',status:'ERROR',records:0,message:String(e.message||e),durationMs:Date.now()-startMs,health:'ERROR'});
     throw e;
   } finally {
     lock.releaseLock();
@@ -245,7 +246,7 @@ function syncRiseUpHistory12MonthsV5() {
     ensureAutomaticBankBalanceFormula_();
     SpreadsheetApp.flush();
     const health=healthCheckV56_();
-    logSync_({action:'RiseUp History 12M V5.6.1',status:health.ok?'SUCCESS':'WARNING',records:all.length,message:'נטענו 12 חודשים | '+details.join(' | '),syncState:'HISTORY_BACKFILL',durationMs:Date.now()-start,inserted:result.inserted,updated:result.updated,duplicates:result.duplicates,health:health.summary});
+    logSync_({action:'RiseUp History 12M V5.6.2',status:health.ok?'SUCCESS':'WARNING',records:all.length,message:'נטענו 12 חודשים | '+details.join(' | '),syncState:'HISTORY_BACKFILL',durationMs:Date.now()-start,inserted:result.inserted,updated:result.updated,duplicates:result.duplicates,health:health.summary});
     getSpreadsheet_().toast('היסטוריית 12 חודשים סונכרנה', 'רואה חשבון', 7);
     return result;
   } finally { lock.releaseLock(); }
@@ -270,14 +271,14 @@ function refreshForecastsV5() {
   ensureAutomaticBankBalanceFormula_();
   SpreadsheetApp.flush();
   const h=healthCheckV56_();
-  logSync_({action:'Forecast Refresh V5.6.1',status:h.ok?'SUCCESS':'WARNING',records:0,message:'רענון תחזיות + בדיקת תלות',syncState:'FORECAST_REFRESH',health:h.summary});
+  logSync_({action:'Forecast Refresh V5.6.2',status:h.ok?'SUCCESS':'WARNING',records:0,message:'רענון תחזיות + בדיקת תלות',syncState:'FORECAST_REFRESH',health:h.summary});
   getSpreadsheet_().toast(h.summary,'רואה חשבון',8);
   return h;
 }
 
 function healthCheckV5() {
   const h=healthCheckV56_();
-  SpreadsheetApp.getUi().alert('Health Check V5.6.1',h.summary,SpreadsheetApp.getUi().ButtonSet.OK);
+  SpreadsheetApp.getUi().alert('Health Check V5.6.2',h.summary,SpreadsheetApp.getUi().ButtonSet.OK);
   return h;
 }
 
@@ -468,24 +469,41 @@ function upsertTransactions_(transactions) {
     const key=String(r[0]||'').trim() || transactionFingerprintFromRow_(r);
     if(key) index[key]=i;
   });
+
   let inserted=0,updated=0,unchanged=0,duplicates=0;
-  const seenApi={}; const now=new Date(); const append=[];
+  const seenApi={};
+  const now=new Date();
+  const output=existing.map(function(r){ return r.slice(); });
+
   transactions.forEach(function(tx){
     const row=normalizeTransaction_(tx,now);
     const key=String(row[0]||'').trim() || transactionFingerprintFromRow_(row);
     if(!key) return;
     if(seenApi[key]) { duplicates++; return; }
     seenApi[key]=true;
+
     if(index[key]===undefined){
-      row[20]=now; append.push(row); index[key]=existing.length+append.length-1; inserted++;
+      row[20]=now;
+      index[key]=output.length;
+      output.push(row);
+      inserted++;
+      return;
+    }
+
+    const i=index[key];
+    const old=output[i];
+    row[20]=old[20]||old[19]||now;
+    if(rowsEquivalent_(old,row,19)) {
+      unchanged++;
     } else {
-      const i=index[key]; const old=existing[i];
-      row[20]=old[20]||old[19]||now;
-      if(rowsEquivalent_(old,row,19)) unchanged++;
-      else { existing[i]=row; sh.getRange(i+2,1,1,width).setValues([row]); updated++; }
+      output[i]=row;
+      updated++;
     }
   });
-  if(append.length) sh.getRange(sh.getLastRow()+1,1,append.length,width).setValues(append);
+
+  if(output.length){
+    sh.getRange(2,1,output.length,width).setValues(output);
+  }
   return {inserted:inserted,updated:updated,unchanged:unchanged,duplicates:duplicates};
 }
 
@@ -642,7 +660,7 @@ function logSync_(x) {
 }
 
 function showSyncToast_(m,h) {
-  getSpreadsheet_().toast('חדשות '+m.inserted+' | עודכנו '+m.updated+' | עו״ש '+formatMoney_(m.balanceAfter)+'\n'+(h.ok?'🟢 תקין':'🔴 דורש בדיקה'),'RiseUp Sync V5.6.1',8);
+  getSpreadsheet_().toast('חדשות '+m.inserted+' | עודכנו '+m.updated+' | עו״ש '+formatMoney_(m.balanceAfter)+'\n'+(h.ok?'🟢 תקין':'🔴 דורש בדיקה'),'RiseUp Sync V5.6.2',8);
 }
 
 function sha256_(text) {
