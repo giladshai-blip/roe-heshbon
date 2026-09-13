@@ -29,6 +29,15 @@ Branch: `dev`
 - כיסוי מלא של תחזית 30 יום.
 - עקביות KPI ו־Health Check.
 
-## מגבלה
+## בדיקות קבלה חיות
 
-הבדיקות המקומיות אינן תחליף להרצה חיה מול Google Sheets ו־RiseUp. אין לקדם ל־`main` לפני `setupV57`, `runRuntimeSelfTestV57`, `runV5Now` ו־`healthCheckV5` בסביבה הפעילה.
+גלעד אישר ב־13/09/2026 שכל ארבע בדיקות הקבלה עברו בסביבה הפעילה:
+
+- `setupV57` — PASS.
+- `runRuntimeSelfTestV57` — PASS.
+- `runV5Now` — PASS.
+- `healthCheckV5` — PASS.
+
+## סטטוס קידום
+
+מאושר לקידום ל־`main`.
