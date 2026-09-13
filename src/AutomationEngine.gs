@@ -1,27 +1,22 @@
 /**
  * ============================================================
- * רואה חשבון — Automation Engine V1.0
+ * רואה חשבון — Automation Engine V1.0.1
  * ============================================================
  * שכבת אוטומציה שמרנית מעל Core V5.6.3.
  *
- * V1.0 כולל:
- * 1) התאמה אוטומטית של תכנון חד-פעמי לביצוע בעו״ש.
- * 2) Cashflow Guard — שפל תזרים, מסגרת עו״ש וחיוב גדול קרוב.
- * 3) Financial Health Guard — ניטור שגיאות סנכרון ומקורות רשמיים.
- * 4) גיליונות התראות ויומן אוטומציות עם מניעת כפילויות.
- *
- * עקרונות בטיחות:
- * - Match → Update → Create.
- * - אין יצירת תנועה פיננסית חדשה על סמך התאמה.
- * - התאמה אוטומטית רק לתכנון חד-פעמי מול תנועת עו״ש בפועל.
- * - העברות פנימיות ותכנון חודשי אינם מותאמים אוטומטית ב-V1.
- * - אי-ודאות הופכת להתראה לבדיקה ולא לעדכון אוטומטי.
+ * V1.0.1:
+ * - מקור אמת יחיד למסגרת עו״ש: הגדרות > "מסגרת עו״ש מאומתת".
+ * - Migration חד-פעמי למסגרת המאומתת 27,300 ₪ אם הפרמטר עדיין חסר.
+ * - Cashflow Guard מתריע במפורש אם מקור המסגרת חסר/לא תקין.
+ * - שמירת עקרונות Match → Update → Create ומניעת ספירה כפולה.
  * ============================================================
  */
 
 const AUTOMATION_ENGINE = {
-  VERSION: 'V1.0',
+  VERSION: 'V1.0.1',
   TIMEZONE: 'Asia/Jerusalem',
+  VERIFIED_CHECKING_FRAME_PARAM: 'מסגרת עו״ש מאומתת',
+  VERIFIED_CHECKING_FRAME_MIGRATION_VALUE: 27300,
   SHEETS: {
     PLANNED: 'תזרים מתוכנן',
     TRANSACTIONS: 'תנועות',
@@ -39,11 +34,16 @@ const AUTOMATION_ENGINE = {
   OFFICIAL_API_MAX_AGE_HOURS: 48
 };
 
-function setupAutomationEngineV1() {
+/**
+ * התקנה/שדרוג V1.0.1.
+ * מבצע migration למסגרת העו״ש רק אם הפרמטר עדיין לא קיים.
+ */
+function setupAutomationEngineV101() {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) throw new Error('המערכת בשימוש. נסה שוב בעוד מספר שניות.');
   try {
     aeEnsureSupportSheets_();
+    aeEnsureVerifiedCheckingFrameConfig_();
     installAutomationEngineTriggersV1();
     const result = runAutomationEngineV1();
     aeAppendAutomationLog_('SETUP', 'SUCCESS', 'Automation Engine ' + AUTOMATION_ENGINE.VERSION + ' הותקן ונבדק', result);
@@ -53,17 +53,16 @@ function setupAutomationEngineV1() {
   }
 }
 
+// תאימות לאחור — התקנה ישנה מפנה לגרסה העדכנית.
+function setupAutomationEngineV1() {
+  return setupAutomationEngineV101();
+}
+
 function installAutomationEngineTriggersV1() {
-  const handlers = ['runAutomationEngineV1'];
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
-    if (handlers.indexOf(trigger.getHandlerFunction()) !== -1) ScriptApp.deleteTrigger(trigger);
+    if (trigger.getHandlerFunction() === 'runAutomationEngineV1') ScriptApp.deleteTrigger(trigger);
   });
-
-  ScriptApp.newTrigger('runAutomationEngineV1')
-    .timeBased()
-    .everyHours(1)
-    .create();
-
+  ScriptApp.newTrigger('runAutomationEngineV1').timeBased().everyHours(1).create();
   return true;
 }
 
@@ -77,10 +76,9 @@ function runAutomationEngineV1() {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) return {status: 'SKIPPED', reason: 'LOCKED'};
 
-  const started = new Date();
   const result = {
     version: AUTOMATION_ENGINE.VERSION,
-    startedAt: started,
+    startedAt: new Date(),
     reconciliation: null,
     cashflow: null,
     health: null,
@@ -113,6 +111,34 @@ function runAutomationEngineV1() {
   }
 }
 
+function aeEnsureVerifiedCheckingFrameConfig_() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(AUTOMATION_ENGINE.SHEETS.CONFIG);
+  if (!sheet) throw new Error('חסר גיליון הגדרות.');
+
+  const values = sheet.getDataRange().getValues();
+  const wanted = aeNormalizeText_(AUTOMATION_ENGINE.VERIFIED_CHECKING_FRAME_PARAM);
+  for (let i = 0; i < values.length; i++) {
+    if (aeNormalizeText_(values[i][0]) === wanted) {
+      const existing = aeNumber_(values[i][1]);
+      if (!isFinite(existing) || existing <= 0) {
+        throw new Error('הפרמטר "' + AUTOMATION_ENGINE.VERIFIED_CHECKING_FRAME_PARAM + '" קיים אך הערך שלו אינו תקין.');
+      }
+      return existing;
+    }
+  }
+
+  // Migration חד-פעמי מנתון שאומת לפני V1.0.1.
+  const row = Math.max(sheet.getLastRow() + 1, 4);
+  sheet.getRange(row, 1, 1, 4).setValues([[
+    AUTOMATION_ENGINE.VERIFIED_CHECKING_FRAME_PARAM,
+    AUTOMATION_ENGINE.VERIFIED_CHECKING_FRAME_MIGRATION_VALUE,
+    '₪',
+    'מאומת בשיחה 13/09/2026; נזרע אוטומטית ב-migration של Automation Engine V1.0.1'
+  ]]);
+  SpreadsheetApp.flush();
+  return AUTOMATION_ENGINE.VERIFIED_CHECKING_FRAME_MIGRATION_VALUE;
+}
+
 /**
  * התאמה שמרנית של תכנון חד-פעמי מול תנועות עו״ש.
  * אין התאמה אוטומטית לתכנון חודשי או להעברה פנימית.
@@ -128,8 +154,9 @@ function aeReconcilePlannedOneOffs_() {
   if (plannedValues.length < 2 || txValues.length < 2) return {matched: 0, review: 0, scanned: 0};
 
   const txHeaders = aeHeaderMap_(txValues[0]);
-  const requiredTx = ['transactionDate','businessName','amount','direction','sourceType'];
-  requiredTx.forEach(function(h) { if (txHeaders[h] == null) throw new Error('חסרה עמודה בתנועות: ' + h); });
+  ['transactionDate','businessName','amount','direction','sourceType'].forEach(function(h) {
+    if (txHeaders[h] == null) throw new Error('חסרה עמודה בתנועות: ' + h);
+  });
 
   const txs = [];
   for (let i = 1; i < txValues.length; i++) {
@@ -179,8 +206,7 @@ function aeReconcilePlannedOneOffs_() {
 
     const scored = candidates.map(function(tx) {
       const exactDate = aeDaysBetween_(date, tx.date) === 0 ? 2 : 0;
-      const textOverlap = aeTextOverlapScore_(description, tx.business);
-      return {tx: tx, score: exactDate + textOverlap};
+      return {tx: tx, score: exactDate + aeTextOverlapScore_(description, tx.business)};
     }).sort(function(a,b) { return b.score - a.score; });
 
     const best = scored[0];
@@ -202,22 +228,17 @@ function aeReconcilePlannedOneOffs_() {
     } else {
       review++;
       aeUpsertAlert_(
-        'reconcile_review_row_' + (r + 1),
-        '🟡',
-        'התאמות',
-        'נדרשת בדיקת התאמה לתכנון',
-        description + ' | ' + aeMoney_(amount) + ' | נמצאו ' + candidates.length + ' מועמדים בעו״ש.',
-        amount,
-        date
+        'reconcile_review_row_' + (r + 1), '🟡', 'התאמות', 'נדרשת בדיקת התאמה לתכנון',
+        description + ' | ' + aeMoney_(amount) + ' | נמצאו ' + candidates.length + ' מועמדים בעו״ש.', amount, date
       );
     }
   }
 
   updates.forEach(function(u) {
-    plannedSheet.getRange(u.row, 10).setValue(u.note);       // J הערה
-    plannedSheet.getRange(u.row, 11).setValue(u.matchCount); // K מס' התאמות
-    plannedSheet.getRange(u.row, 12).setValue(u.status);     // L סטטוס ביצוע
-    plannedSheet.getRange(u.row, 13).setValue(u.includedEffective); // M כלול אפקטיבית
+    plannedSheet.getRange(u.row, 10).setValue(u.note);
+    plannedSheet.getRange(u.row, 11).setValue(u.matchCount);
+    plannedSheet.getRange(u.row, 12).setValue(u.status);
+    plannedSheet.getRange(u.row, 13).setValue(u.includedEffective);
   });
 
   return {matched: matched, review: review, scanned: scanned};
@@ -256,17 +277,27 @@ function aeCashflowGuard_() {
 
   if (!isFinite(minBalance)) return {critical: false, rows: values.length - 1};
 
-  const frame = aeFindConfigNumber_(['מסגרת עו״ש','מסגרת עוש','מסגרת אשראי עו״ש','מסגרת חשבון']);
+  const frame = aeFindConfigNumber_([AUTOMATION_ENGINE.VERIFIED_CHECKING_FRAME_PARAM]);
   const remaining = frame > 0 ? frame + minBalance : null;
   let critical = false;
 
-  if (frame > 0 && remaining < AUTOMATION_ENGINE.LOW_MARGIN_CRITICAL) {
+  if (!(frame > 0)) {
     critical = true;
-    aeUpsertAlert_('cashflow_low_margin', '🔴', 'תזרים', 'מרווח מסגרת עו״ש נמוך מאוד', 'השפל החזוי הוא ' + aeMoney_(minBalance) + ' ב-' + aeFormatDate_(minDate) + ', ונשאר מרווח של ' + aeMoney_(remaining) + ' בלבד.', remaining, minDate);
-  } else if (frame > 0 && remaining < AUTOMATION_ENGINE.LOW_MARGIN_WARNING) {
-    aeUpsertAlert_('cashflow_low_margin', '🟡', 'תזרים', 'מרווח מסגרת עו״ש נמוך', 'השפל החזוי הוא ' + aeMoney_(minBalance) + ' ב-' + aeFormatDate_(minDate) + ', ונשאר מרווח של ' + aeMoney_(remaining) + '.', remaining, minDate);
-  } else {
+    aeUpsertAlert_(
+      'checking_frame_missing', '🔴', 'תזרים', 'מסגרת עו״ש מאומתת חסרה',
+      'לא ניתן לחשב מרווח מסגרת עד שיוגדר בהגדרות הפרמטר "' + AUTOMATION_ENGINE.VERIFIED_CHECKING_FRAME_PARAM + '".', '', new Date()
+    );
     aeResolveAlert_('cashflow_low_margin');
+  } else {
+    aeResolveAlert_('checking_frame_missing');
+    if (remaining < AUTOMATION_ENGINE.LOW_MARGIN_CRITICAL) {
+      critical = true;
+      aeUpsertAlert_('cashflow_low_margin', '🔴', 'תזרים', 'מרווח מסגרת עו״ש נמוך מאוד', 'השפל החזוי הוא ' + aeMoney_(minBalance) + ' ב-' + aeFormatDate_(minDate) + ', ונשאר מרווח של ' + aeMoney_(remaining) + ' בלבד.', remaining, minDate);
+    } else if (remaining < AUTOMATION_ENGINE.LOW_MARGIN_WARNING) {
+      aeUpsertAlert_('cashflow_low_margin', '🟡', 'תזרים', 'מרווח מסגרת עו״ש נמוך', 'השפל החזוי הוא ' + aeMoney_(minBalance) + ' ב-' + aeFormatDate_(minDate) + ', ונשאר מרווח של ' + aeMoney_(remaining) + '.', remaining, minDate);
+    } else {
+      aeResolveAlert_('cashflow_low_margin');
+    }
   }
 
   if (nextLargeDebitDate) {
@@ -408,6 +439,8 @@ function aeBuildRunSummary_(result) {
   const c = result.cashflow || {};
   return 'התאמות: ' + (r.matched || 0) + ' | לבדיקה: ' + (r.review || 0) +
     ' | שפל תזרים: ' + (isFinite(c.minBalance) ? aeMoney_(c.minBalance) : 'לא זמין') +
+    ' | מסגרת: ' + (c.checkingFrame ? aeMoney_(c.checkingFrame) : 'חסרה') +
+    ' | מרווח בשפל: ' + (isFinite(c.remainingFrameAtLow) ? aeMoney_(c.remainingFrameAtLow) : 'לא זמין') +
     ' | סטטוס: ' + result.status;
 }
 
