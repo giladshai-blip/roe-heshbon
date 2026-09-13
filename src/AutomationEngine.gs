@@ -1,19 +1,19 @@
 /**
  * ============================================================
- * רואה חשבון — Automation Engine V1.0.1
+ * רואה חשבון — Automation Engine V1.0.2
  * ============================================================
- * שכבת אוטומציה שמרנית מעל Core V5.6.3.
+ * שכבת אוטומציה שמרנית מעל Core V5.6.4.
  *
- * V1.0.1:
- * - מקור אמת יחיד למסגרת עו״ש: הגדרות > "מסגרת עו״ש מאומתת".
- * - Migration חד-פעמי למסגרת המאומתת 27,300 ₪ אם הפרמטר עדיין חסר.
- * - Cashflow Guard מתריע במפורש אם מקור המסגרת חסר/לא תקין.
- * - שמירת עקרונות Match → Update → Create ומניעת ספירה כפולה.
+ * V1.0.2:
+ * - שפל 30 יום נלקח מאותו מקור חישוב של Core/Dashboard.
+ * - Cashflow Guard משתמש באותו minimum/minimumDate של getForecast30DayMetrics_.
+ * - רענון KPI הדשבורד לפני בדיקות תזרים כאשר הפונקציה זמינה.
+ * - נשמר מקור אמת יחיד למסגרת עו״ש וכל עקרונות Match → Update → Create.
  * ============================================================
  */
 
 const AUTOMATION_ENGINE = {
-  VERSION: 'V1.0.1',
+  VERSION: 'V1.0.2',
   TIMEZONE: 'Asia/Jerusalem',
   VERIFIED_CHECKING_FRAME_PARAM: 'מסגרת עו״ש מאומתת',
   VERIFIED_CHECKING_FRAME_MIGRATION_VALUE: 27300,
@@ -34,11 +34,7 @@ const AUTOMATION_ENGINE = {
   OFFICIAL_API_MAX_AGE_HOURS: 48
 };
 
-/**
- * התקנה/שדרוג V1.0.1.
- * מבצע migration למסגרת העו״ש רק אם הפרמטר עדיין לא קיים.
- */
-function setupAutomationEngineV101() {
+function setupAutomationEngineV102() {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) throw new Error('המערכת בשימוש. נסה שוב בעוד מספר שניות.');
   try {
@@ -53,10 +49,8 @@ function setupAutomationEngineV101() {
   }
 }
 
-// תאימות לאחור — התקנה ישנה מפנה לגרסה העדכנית.
-function setupAutomationEngineV1() {
-  return setupAutomationEngineV101();
-}
+function setupAutomationEngineV101() { return setupAutomationEngineV102(); }
+function setupAutomationEngineV1() { return setupAutomationEngineV102(); }
 
 function installAutomationEngineTriggersV1() {
   ScriptApp.getProjectTriggers().forEach(function(trigger) {
@@ -88,6 +82,8 @@ function runAutomationEngineV1() {
   try {
     aeEnsureSupportSheets_();
     result.reconciliation = aeReconcilePlannedOneOffs_();
+    SpreadsheetApp.flush();
+    if (typeof refreshDashboardForecastKpiV56 === 'function') refreshDashboardForecastKpiV56();
     SpreadsheetApp.flush();
     result.cashflow = aeCashflowGuard_();
     result.health = aeFinancialHealthGuard_();
@@ -127,7 +123,6 @@ function aeEnsureVerifiedCheckingFrameConfig_() {
     }
   }
 
-  // Migration חד-פעמי מנתון שאומת לפני V1.0.1.
   const row = Math.max(sheet.getLastRow() + 1, 4);
   sheet.getRange(row, 1, 1, 4).setValues([[
     AUTOMATION_ENGINE.VERIFIED_CHECKING_FRAME_PARAM,
@@ -139,10 +134,6 @@ function aeEnsureVerifiedCheckingFrameConfig_() {
   return AUTOMATION_ENGINE.VERIFIED_CHECKING_FRAME_MIGRATION_VALUE;
 }
 
-/**
- * התאמה שמרנית של תכנון חד-פעמי מול תנועות עו״ש.
- * אין התאמה אוטומטית לתכנון חודשי או להעברה פנימית.
- */
 function aeReconcilePlannedOneOffs_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const plannedSheet = ss.getSheetByName(AUTOMATION_ENGINE.SHEETS.PLANNED);
@@ -257,6 +248,14 @@ function aeCashflowGuard_() {
   let nextLargeDebit = 0, nextLargeDebitDate = null;
   let currentOrFirstBalance = null;
 
+  if (typeof getForecast30DayMetrics_ === 'function') {
+    const shared = getForecast30DayMetrics_();
+    if (shared && shared.covered === 30 && isFinite(shared.minimum)) {
+      minBalance = shared.minimum;
+      minDate = aeDate_(shared.minimumDate);
+    }
+  }
+
   for (let i = 1; i < values.length; i++) {
     const date = aeDate_(values[i][0]);
     if (!date) continue;
@@ -267,7 +266,9 @@ function aeCashflowGuard_() {
 
     if (date >= today && isFinite(closing)) {
       if (currentOrFirstBalance == null) currentOrFirstBalance = closing;
-      if (closing < minBalance) { minBalance = closing; minDate = date; }
+      if (!isFinite(minBalance) || minBalance === Infinity) {
+        if (closing < minBalance) { minBalance = closing; minDate = date; }
+      }
       if (dailyOut >= AUTOMATION_ENGINE.LARGE_UPCOMING_DEBIT && (nextLargeDebitDate == null || date < nextLargeDebitDate)) {
         nextLargeDebit = dailyOut;
         nextLargeDebitDate = date;
