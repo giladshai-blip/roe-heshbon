@@ -8,7 +8,7 @@
  * - המלצות ומשימות דינמיות.
  * - אשראי: גם חשיפה משפחתית וגם הכרטיס בעל היחס הגבוה ביותר.
  * - יעד כרית ביטחון ממקור יחיד: גיליון יעדים.
- * - תיקון KPI שפל 30 יום ללא LET/MAP, ישירות משכבות התזרים והגאנט.
+ * - KPI שפל 30 יום נלקח מפונקציית Core משותפת ל-Core/Dashboard/Automation Engine.
  * ============================================================
  */
 
@@ -91,7 +91,7 @@ function buildDashboardV56HelperData_(sheet) {
   const balance='INDEX(\'הגדרות\'!B:B,MATCH("יתרת עו״ש מחושבת אוטומטית",\'הגדרות\'!A:A,0))';
   sheet.getRange('Z2').setFormula(numeric(balance));
   sheet.getRange('Z3').setFormula(numeric(endOfMonthFormula_().slice(1)));
-  sheet.getRange('Z4').setFormula(forecastMinimumFormula_());
+  refreshDashboardForecastKpiV56(sheet);
   const cards="'כרטיסי אשראי'!";
   const eligible=cards+'G2:G>0,ISNUMBER('+cards+'H2:H),'+cards+'A2:A<>"",REGEXMATCH('+cards+'I2:I,"זהות.*אימות")=FALSE';
   const ratios='FILTER('+cards+'H2:H,'+eligible+')';
@@ -111,6 +111,29 @@ function buildDashboardV56HelperData_(sheet) {
   sheet.getRange('Z6:Z9').setNumberFormat('#,##0.00 ₪');
   sheet.getRange('Z10:Z11').setNumberFormat('dd/mm/yyyy hh:mm');
   sheet.getRange('Z12:Z14').setNumberFormat('0.0');
+}
+
+function refreshDashboardForecastKpiV56(optionalSheet) {
+  const sheet = optionalSheet || getDashboardV56Sheet_();
+  if (typeof getForecast30DayMetrics_ !== 'function') {
+    sheet.getRange('Z4').setFormula(forecastMinimumFormula_());
+    return {covered: 0, minimum: NaN, minimumDate: ''};
+  }
+  let metrics;
+  try {
+    metrics = getForecast30DayMetrics_();
+  } catch (e) {
+    sheet.getRange('Z4').setFormula(forecastMinimumFormula_());
+    return {covered: 0, minimum: NaN, minimumDate: ''};
+  }
+  if (metrics && metrics.covered === 30 && isFinite(metrics.minimum)) {
+    sheet.getRange('Z4').setValue(metrics.minimum).setNumberFormat('#,##0.00 ₪');
+    sheet.getRange('Z4').setNote('מקור: Core getForecast30DayMetrics_ | תאריך שפל: ' + String(metrics.minimumDate || 'לא ידוע'));
+  } else {
+    sheet.getRange('Z4').setValue('לא זמין');
+    sheet.getRange('Z4').setNote('תחזית 30 יום אינה מלאה.');
+  }
+  return metrics;
 }
 
 function buildDashboardV56Layout_(sheet) {
@@ -255,8 +278,9 @@ function getDashboardV56Sheet_() {
   return sheet;
 }
 
+// fallback בלבד לסביבת התקנה חלקית/בדיקות ישנות; במערכת מלאה Z4 נכתב מפונקציית Core המשותפת.
 function forecastMinimumFormula_() {
-  return '=IFERROR(MIN(FILTER({\'תזרים\'!G2:G400;\'גאנט תזרים שנתי\'!I16:I400},{\'תזרים\'!A2:A400;\'גאנט תזרים שנתי\'!A16:A400}>=TODAY(),{\'תזרים\'!A2:A400;\'גאנט תזרים שנתי\'!A16:A400}<TODAY()+30,ISNUMBER({\'תזרים\'!G2:G400;\'גאנט תזרים שנתי\'!I16:I400}))),"לא זמין")';
+  return '=IFERROR(LET(days,SEQUENCE(30,1,TODAY(),1),vals,MAP(days,LAMBDA(day,IFERROR(INDEX(FILTER(\'תזרים\'!G2:G400,\'תזרים\'!A2:A400=day,ISNUMBER(\'תזרים\'!G2:G400)),1),IFERROR(INDEX(FILTER(\'גאנט תזרים שנתי\'!I16:I400,\'גאנט תזרים שנתי\'!A16:A400=day,ISNUMBER(\'גאנט תזרים שנתי\'!I16:I400)),1),NA())))),IF(COUNT(vals)=30,MIN(vals),"לא זמין")),"לא זמין")';
 }
 
 function guardDashboardV561_(sheet) {
