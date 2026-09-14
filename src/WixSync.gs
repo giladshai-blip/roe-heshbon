@@ -13,7 +13,7 @@
  * התקנה חד-פעמית:
  * - להוסיף את הקובץ הזה לפרויקט Apps Script של "רואה חשבון - מערכת פיננסית".
  * - לשמור WIX_API_KEY ב-Script Properties באמצעות setWixApiKeyV1(apiKey).
- * - לפרוס את Apps Script כ-Web App (Execute as: Me; access לפי מדיניות הפרויקט).
+ * - לפרוס את Apps Script כ-Web App.
  * - באתר Wix להפעיל את כתובת ה-Web App עם ?action=site-open בכל פתיחת האתר.
  */
 
@@ -52,8 +52,7 @@ function doGet(e) {
   const action = e && e.parameter ? String(e.parameter.action || '') : '';
   if (action === 'site-open') {
     try {
-      const result = syncWixOnOpenV1_();
-      return jsonOutputV1_(result);
+      return jsonOutputV1_(syncWixOnOpenV1_());
     } catch (err) {
       return jsonOutputV1_({
         ok: false,
@@ -87,16 +86,17 @@ function doPost(e) {
 }
 
 function syncWixOnOpenV1_() {
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(1000)) {
+  const props = PropertiesService.getScriptProperties();
+  const gate = LockService.getScriptLock();
+  if (!gate.tryLock(1000)) {
     return { ok: true, skipped: true, reason: 'SYNC_ALREADY_RUNNING', at: new Date().toISOString() };
   }
 
+  let now;
   try {
-    const props = PropertiesService.getScriptProperties();
     const lastRaw = props.getProperty('WIX_LAST_SITE_OPEN_SYNC_AT');
     const last = lastRaw ? new Date(lastRaw) : null;
-    const now = new Date();
+    now = new Date();
     const minAgeMs = WIX_SYNC_V1.THROTTLE_MINUTES * 60 * 1000;
 
     if (last && !isNaN(last.getTime()) && now.getTime() - last.getTime() < minAgeMs) {
@@ -109,36 +109,37 @@ function syncWixOnOpenV1_() {
       };
     }
 
-    let riseupResult = null;
-    if (typeof syncRiseUpV5 === 'function') {
-      riseupResult = syncRiseUpV5();
-    }
-
-    const wixResult = syncWixSnapshotV1_();
+    // קובעים את זמן הניסיון לפני השחרור כדי למנוע שתי פתיחות מקבילות.
     props.setProperty('WIX_LAST_SITE_OPEN_SYNC_AT', now.toISOString());
-
-    return {
-      ok: true,
-      skipped: false,
-      at: now.toISOString(),
-      riseup: summarizeRiseupResultV1_(riseupResult),
-      wix: wixResult
-    };
   } finally {
-    lock.releaseLock();
+    gate.releaseLock();
   }
+
+  let riseupResult = null;
+  if (typeof syncRiseUpV5 === 'function') {
+    riseupResult = syncRiseUpV5();
+  }
+
+  const wixResult = syncWixSnapshotV1_();
+  props.setProperty('WIX_LAST_SITE_OPEN_SYNC_SUCCESS_AT', new Date().toISOString());
+
+  return {
+    ok: true,
+    skipped: false,
+    at: now.toISOString(),
+    riseup: summarizeRiseupResultV1_(riseupResult),
+    wix: wixResult
+  };
 }
 
 function syncWixSnapshotV1_() {
   const snapshot = buildWixSnapshotV1_();
-
   const results = {
     overview: wixBulkSaveV1_(WIX_SYNC_V1.COLLECTIONS.OVERVIEW, [snapshot.overview]),
     daily: wixBulkSaveV1_(WIX_SYNC_V1.COLLECTIONS.DAILY, snapshot.daily),
     futureSummary: wixBulkSaveV1_(WIX_SYNC_V1.COLLECTIONS.FUTURE_SUMMARY, [snapshot.futureSummary]),
     futureMonthly: wixBulkSaveV1_(WIX_SYNC_V1.COLLECTIONS.FUTURE_MONTHLY, snapshot.futureMonthly)
   };
-
   return {
     snapshotDate: snapshot.snapshotDate,
     counts: {
@@ -159,10 +160,9 @@ function buildWixSnapshotV1_() {
 
   const cashflowRows = readTableV1_(ss.getSheetByName(V56.SHEET_NAMES.CASHFLOW));
   if (!cashflowRows.length) throw new Error('גיליון תזרים ריק.');
-
   const annualRows = readTableByHeaderSearchV1_(ss.getSheetByName(V56.SHEET_NAMES.ANNUAL_CASHFLOW), 'תאריך');
 
-  const daily = cashflowRows.map(function(row, i) {
+  const daily = cashflowRows.map(function(row) {
     const d = normalizeDateV1_(row['תאריך'], tz);
     return {
       id: d,
@@ -189,13 +189,6 @@ function buildWixSnapshotV1_() {
     const d = normalizeDateV1_(row['תאריך'], tz);
     return {
       date: d,
-      openingBalance: numV1_(row['יתרת פתיחה']),
-      salary: numV1_(row['משכורת']),
-      benefit: numV1_(row['קצבה']),
-      baseExpense: numV1_(row['הוצאה יומית בסיס']),
-      oneTimeIncome: numV1_(row['הכנסה חד-פעמית']),
-      oneTimeExpense: numV1_(row['הוצאה חד-פעמית']),
-      dailyNet: numV1_(row['נטו יומי']),
       closingBalance: numV1_(row['יתרת סגירה']),
       status: String(row['סטטוס'] || ''),
       monthLabel: String(row['חודש'] || '')
@@ -327,8 +320,7 @@ function normalizeDateV1_(value, tz) {
   }
   if (typeof value === 'number') {
     const ms = Math.round((value - 25569) * 86400 * 1000);
-    const d = new Date(ms);
-    return Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd');
+    return Utilities.formatDate(new Date(ms), 'UTC', 'yyyy-MM-dd');
   }
   if (typeof value === 'string' && value.trim()) {
     const d = new Date(value);
@@ -369,21 +361,18 @@ function formatMoneyPlainV1_(value) {
 function wixBulkSaveV1_(collectionId, dataItems) {
   if (!dataItems || !dataItems.length) return { ok: true, skipped: true, count: 0 };
   const key = getWixApiKeyV1_();
-  const url = 'https://www.wixapis.com/wix-data/v2/bulk/items/save';
-  const payload = {
-    dataCollectionId: collectionId,
-    dataItems: dataItems,
-    returnEntity: false
-  };
-
-  const response = UrlFetchApp.fetch(url, {
+  const response = UrlFetchApp.fetch('https://www.wixapis.com/wix-data/v2/bulk/items/save', {
     method: 'post',
     contentType: 'application/json',
     headers: {
       Authorization: key,
       'wix-site-id': WIX_SYNC_V1.SITE_ID
     },
-    payload: JSON.stringify(payload),
+    payload: JSON.stringify({
+      dataCollectionId: collectionId,
+      dataItems: dataItems,
+      returnEntity: false
+    }),
     muteHttpExceptions: true
   });
 
@@ -409,7 +398,5 @@ function summarizeRiseupResultV1_(result) {
 }
 
 function jsonOutputV1_(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
