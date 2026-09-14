@@ -1,0 +1,80 @@
+name: Apply Core V5.9 reconciliation migration
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - '.github/workflows/apply-core-v59.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+      - name: Apply deterministic Core V5.9 migration
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/Code.gs')
+          s = p.read_text()
+          assert "VERSION: 'V5.8.0'" in s
+          assert "DASHBOARD_VERSION: 'V5.8.0'" in s
+          assert "function getFinancialSnapshotV58_()" in s
+          assert "function getPlannedReconciliationV59_()" not in s
+          s=s.replace('רואה חשבון — Core V5.8.0','רואה חשבון — Core V5.9.0',1)
+          s=s.replace('עיקרי V5.8.0:','עיקרי V5.9.0:',1)
+          s=s.replace(" * - Dashboard צורך את מנוע ה-Core ואינו מחשב מחדש KPI קריטיים.\n * - בדיקות Runtime מובנות למבנה, כפילויות, עסקאות, תחזית ו-KPI."," * - Dashboard צורך את מנוע ה-Core ואינו מחשב מחדש KPI קריטיים.\n * - מנגנון התאמת תזרים מתוכנן ↔ תנועות עבר ל-Core עם סינון סטטוס מדויק.\n * - שלב Cutover בטוח: מנוע ההתאמה ב-Core הוא קריאה בלבד ואינו דורס נוסחאות K–M.\n * - בדיקות Runtime מובנות למבנה, כפילויות, עסקאות, תחזית, התאמות ו-KPI.",1)
+          s=s.replace("  VERSION: 'V5.8.0',\n  DASHBOARD_VERSION: 'V5.8.0',","  VERSION: 'V5.9.0',\n  DASHBOARD_VERSION: 'V5.8.0',",1)
+          s=s.replace("  INITIAL_RETRY_MS: 1000,","  INITIAL_RETRY_MS: 1000,\n  RECONCILIATION_WINDOW_DAYS: 3,\n  RECONCILIATION_AMOUNT_TOLERANCE: 1,",1)
+          s=s.replace("function setupV58() { return setupV56(); }","function setupV59() { return setupV56(); }\nfunction setupV58() { return setupV56(); }",1)
+          s=s.replace("const metrics={inserted:0,updated:0,unchanged:0,duplicates:0,months:[],tokenRef:'',riseupLastUpdatedAt:'',budgetUpdated:false,balanceBefore:'',balanceAfter:''};","const metrics={inserted:0,updated:0,unchanged:0,duplicates:0,months:[],tokenRef:'',riseupLastUpdatedAt:'',budgetUpdated:false,balanceBefore:'',balanceAfter:'',reconciliation:null};",1)
+          old="applyModelIntegrityFixes_();ensureAutomaticBankBalanceFormula_();refreshDuplicateFormulas_();SpreadsheetApp.flush();\n    if (typeof refreshDashboardForecastKpiV56 === 'function') refreshDashboardForecastKpiV56();"
+          new="applyModelIntegrityFixes_();ensureAutomaticBankBalanceFormula_();refreshDuplicateFormulas_();SpreadsheetApp.flush();\n    metrics.reconciliation=getPlannedReconciliationV59_();\n    if (typeof refreshDashboardForecastKpiV56 === 'function') refreshDashboardForecastKpiV56();"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="message:'חודשים: '+metrics.months.join(', ')+' | חדשות: '+metrics.inserted+' | עודכנו: '+metrics.updated+' | ללא שינוי: '+metrics.unchanged+' | כפילויות API: '+metrics.duplicates"
+          new="message:'חודשים: '+metrics.months.join(', ')+' | חדשות: '+metrics.inserted+' | עודכנו: '+metrics.updated+' | ללא שינוי: '+metrics.unchanged+' | כפילויות API: '+metrics.duplicates+' | תכנון נסרק: '+metrics.reconciliation.eligible+' | התאמות בטוחות: '+metrics.reconciliation.matched+' | לבדיקה: '+metrics.reconciliation.review"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="  test('כיסוי תחזית 30 יום',function(){const m=getForecast30DayMetrics_();if(m.covered!==30)throw new Error('כיסוי '+m.covered+'/30');return 'שפל '+formatMoney_(m.minimum)+' בתאריך '+m.minimumDate;});\n  test('עקביות KPI'"
+          new="  test('כיסוי תחזית 30 יום',function(){const m=getForecast30DayMetrics_();if(m.covered!==30)throw new Error('כיסוי '+m.covered+'/30');return 'שפל '+formatMoney_(m.minimum)+' בתאריך '+m.minimumDate;});\n  test('התאמת תזרים מתוכנן',function(){const r=getPlannedReconciliationV59_();return 'זכאים '+r.eligible+' | התאמות בטוחות '+r.matched+' | לבדיקה '+r.review;});\n  test('עקביות KPI'"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="  const dash=getSheet_('DASHBOARD');[['Z2',autoBalance],['Z3',end.value],['Z4',horizon.minimum],['Z6',goal]].forEach(function(pair){const actual=numberOrNaN_(dash.getRange(pair[0]).getValue());if(!isFinite(actual)||!isFinite(pair[1])||Math.abs(actual-pair[1])>0.01)errors.push('מקור KPI בדשבורד דורש רענון: '+pair[0]);});if(!String(dash.getRange('A5').getValue()).includes('מחושבת'))warnings.push('כרטיס העו״ש אינו מסומן כמחושב');\n  const errorCells=findFormulaErrors_();"
+          new="  const dash=getSheet_('DASHBOARD');[['Z2',autoBalance],['Z3',end.value],['Z4',horizon.minimum],['Z6',goal]].forEach(function(pair){const actual=numberOrNaN_(dash.getRange(pair[0]).getValue());if(!isFinite(actual)||!isFinite(pair[1])||Math.abs(actual-pair[1])>0.01)errors.push('מקור KPI בדשבורד דורש רענון: '+pair[0]);});if(!String(dash.getRange('A5').getValue()).includes('מחושבת'))warnings.push('כרטיס העו״ש אינו מסומן כמחושב');\n  const reconciliation=getPlannedReconciliationV59_();if(reconciliation.review)warnings.push(reconciliation.review+' אירועי תזרים מתוכנן דורשים בדיקת התאמה ידנית');if(reconciliation.formulaDisagreements)warnings.push(reconciliation.formulaDisagreements+' פערים בין מנוע התאמות Core לנוסחאות K–M בשלב ה-Cutover');\n  const errorCells=findFormulaErrors_();"
+          assert old in s
+          s=s.replace(old,new,1)
+          marker='function auditTransactions_(rows){'
+          assert marker in s
+          funcs=r'''function runPlannedReconciliationV59(){const r=getPlannedReconciliationV59_();const text='זכאים לבדיקה: '+r.eligible+'\nהתאמות בטוחות: '+r.matched+'\nלבדיקה ידנית: '+r.review+'\nללא התאמה: '+r.unmatched+'\nפערים מול נוסחאות K–M: '+r.formulaDisagreements;SpreadsheetApp.getUi().alert('התאמת תזרים מתוכנן — Core '+V56.VERSION,text,SpreadsheetApp.getUi().ButtonSet.OK);return r;}
+function getPlannedReconciliationV59_(){const planned=getSheet_('PLANNED_CASHFLOW'),txSheet=getSheet_('TRANSACTIONS'),plannedValues=planned.getDataRange().getValues(),txValues=txSheet.getDataRange().getValues();if(plannedValues.length<2||txValues.length<2)return{version:V56.VERSION,eligible:0,matched:0,review:0,unmatched:0,formulaDisagreements:0,rows:[]};const headers=headerMapV59_(txValues[0]);['transactionDate','businessName','amount','direction','sourceType'].forEach(function(h){if(headers[h]==null)throw new Error('חסרה עמודה בתנועות: '+h);});const txs=[];for(let i=1;i<txValues.length;i++){const row=txValues[i];if(String(row[headers.sourceType]||'').trim()!=='checkingAccount')continue;const date=plannedReconciliationDateV59_(row[headers.transactionDate]),amount=numberOrNaN_(row[headers.amount]);if(!date||!isFinite(amount))continue;txs.push({row:i+1,date:date,amount:Math.abs(amount),direction:String(row[headers.direction]||'').trim(),business:String(row[headers.businessName]||'').trim()});}let eligible=0,matched=0,review=0,unmatched=0,formulaDisagreements=0;const rows=[];for(let r=1;r<plannedValues.length;r++){const row=plannedValues[r],date=plannedReconciliationDateV59_(row[0]),type=String(row[1]||'').trim(),description=String(row[2]||'').trim(),amount=Math.abs(numberOrNaN_(row[3])),frequency=String(row[5]||'').trim(),paymentMethod=String(row[6]||'').trim(),included=row[8]===true,status=String(row[11]||'').trim(),formulaMatchCount=numberOrNaN_(row[10]);if(!date||!isFinite(amount)||amount<=0||!included||frequency==='חודשי'||type==='העברה פנימית'||/מזומן/.test(paymentMethod)||plannedReconciliationFinalStatusV59_(status)||['הוצאה','הכנסה','זיכוי'].indexOf(type)===-1)continue;eligible++;const expectedDirection=type==='הוצאה'?'הוצאה':'הכנסה',candidates=txs.filter(function(tx){return tx.direction===expectedDirection&&Math.abs(tx.amount-amount)<=V56.RECONCILIATION_AMOUNT_TOLERANCE&&Math.abs(plannedReconciliationDaysV59_(date,tx.date))<=V56.RECONCILIATION_WINDOW_DAYS;});const scored=candidates.map(function(tx){const exactDate=plannedReconciliationDaysV59_(date,tx.date)===0?2:0;return{tx:tx,score:exactDate+plannedReconciliationTextScoreV59_(description,tx.business)};}).sort(function(a,b){return b.score-a.score;});const best=scored[0],uniqueBest=!!best&&(scored.length===1||best.score>scored[1].score),highConfidence=!!best&&uniqueBest&&(best.score>=2||(candidates.length===1&&plannedReconciliationDaysV59_(date,best.tx.date)===0));if(highConfidence)matched++;else if(candidates.length)review++;else unmatched++;const formulaCount=isFinite(formulaMatchCount)?formulaMatchCount:0;if(formulaCount!==candidates.length)formulaDisagreements++;rows.push({row:r+1,date:dayKey_(date),type:type,description:description,amount:amount,status:status,candidates:candidates.length,highConfidence:highConfidence,formulaMatchCount:formulaCount,best:best?{row:best.tx.row,date:dayKey_(best.tx.date),amount:best.tx.amount,business:best.tx.business,score:best.score}:null});}return{version:V56.VERSION,eligible:eligible,matched:matched,review:review,unmatched:unmatched,formulaDisagreements:formulaDisagreements,rows:rows};}
+function plannedReconciliationFinalStatusV59_(status){const s=String(status||'').trim();return /^(?:✅\s*)?(?:בוצע\s*—\s*מאומת אוטומטית|בוצע ידנית|מאומת ידנית|נסגר|בוטל)$/.test(s);}
+function plannedReconciliationDateV59_(value){if(isValidDate_(value))return new Date(value.getFullYear(),value.getMonth(),value.getDate());if(value==null||value==='')return null;const s=String(value).trim();let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);if(m)return new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));return null;}
+function plannedReconciliationDaysV59_(a,b){return Math.round((new Date(b.getFullYear(),b.getMonth(),b.getDate()).getTime()-new Date(a.getFullYear(),a.getMonth(),a.getDate()).getTime())/86400000);}
+function plannedReconciliationTextScoreV59_(a,b){const stop={'של':1,'את':1,'עם':1,'עבור':1,'בעמ':1,'בע״מ':1,'בעמ״':1};const ta=plannedReconciliationNormalizeV59_(a).split(' ').filter(function(t){return t.length>2&&!stop[t];}),tb=plannedReconciliationNormalizeV59_(b).split(' ').filter(function(t){return t.length>2&&!stop[t];});let score=0;ta.forEach(function(t){if(tb.indexOf(t)!==-1)score++;});return score;}
+function plannedReconciliationNormalizeV59_(value){return String(value||'').toLowerCase().replace(/["'׳״.,()\[\]{}:;\-–—_/\\]/g,' ').replace(/\s+/g,' ').trim();}
+function headerMapV59_(headers){const map={};headers.forEach(function(h,i){map[String(h||'').trim()]=i;});return map;}
+'''
+          s=s.replace(marker,funcs+marker,1)
+          assert "27300" not in s and "27,300" not in s
+          assert "/בוצע|מאומת/" not in s
+          p.write_text(s)
+          PY
+          cp src/Code.gs /tmp/Code.js
+          node --check /tmp/Code.js
+          git diff --check
+      - name: Commit Core V5.9
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/Code.gs
+          git commit -m 'Core V5.9 migrate planned reconciliation into Core'
+          git push origin HEAD:dev
