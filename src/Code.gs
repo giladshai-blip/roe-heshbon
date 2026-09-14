@@ -8,14 +8,6 @@
  * - מקור קנוני אחד ל-Core ומקור קנוני אחד ל-Dashboard.
  * - בדיקות Runtime מובנות למבנה, כפילויות, עסקאות, תחזית ו-KPI.
  * - תמיכה בדשבורד המציג התראה פעילה ומרווח מסגרת עו״ש בשפל.
- *
- * נשמר מ-V5.6.5:
- * - סנכרון RiseUp מתוזמן אחת ל-3 שעות במקום אחת לשעה.
- * - התקנת הטריגר מוחקת טריגרי syncRiseUpV5 קיימים ומוודאת שנותר טריגר יחיד.
- * - 429 מטופל בעצירה בטוחה ובהצגת Retry-After; אין retry עיוור מול rate limit.
- * - Health Check מזהה טריגר חסר/כפול כאשר ScriptApp זמין.
- * - סף רעננות הסנכרון הותאם לטריגר של 3 שעות עם מרווח תזמון.
- * - נשמרו תיקוני V5.6.4: העברה פנימית חוקית ומקור משותף לשפל 30 יום.
  * ============================================================
  */
 
@@ -68,33 +60,9 @@ const V56 = {
 };
 
 function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('💼 רואה חשבון')
-    .addItem('🔄 סנכרון RiseUp עכשיו', 'runV5Now')
-    .addItem('📚 סנכרון 12 חודשים', 'syncRiseUpHistory12MonthsV5')
-    .addSeparator()
-    .addItem('🏦 עדכון יתרת עו״ש מאומתת', 'promptVerifiedBankBalanceV5')
-    .addItem('🧮 רענון תחזיות וחישובים', 'refreshForecastsV5')
-    .addSeparator()
-    .addSubMenu(
-      ui.createMenu('📊 לוח מחוונים')
-        .addItem('מעבר ללוח מחוונים', 'openDashboardV5')
-        .addItem('התקנה / רענון V5.7', 'installDashboardV56')
-        .addItem('ניקוי הדשבורד', 'clearDashboardV56')
-    )
-    .addSeparator()
-    .addItem('🩺 בדיקת מערכת V5.7', 'healthCheckV5')
-    .addItem('🧪 בדיקות Runtime V5.7', 'runRuntimeSelfTestV57')
-    .addItem('🔍 בדיקת כפילויות', 'checkDuplicatesV5')
-    .addItem('✅ סריקת סטטוסי אימות', 'scanVerificationStatusV5')
-    .addItem('ℹ️ סטטוס מערכת', 'showSystemStatusV5')
-    .addSeparator()
-    .addSubMenu(
-      ui.createMenu('⚙️ הגדרות מערכת')
-        .addItem('🛠 התקנת / שדרוג V5.7', 'setupV57')
-        .addItem('⏰ התקנת סנכרון כל 3 שעות', 'installRiseupSyncTriggerV5')
-        .addItem('🗑 מחיקת טריגר', 'deleteV5Triggers')
-    )
+  SpreadsheetApp.getUi()
+    .createMenu('💼 רואה חשבון')
+    .addItem('🔄 סנכרון עכשיו', 'runV5Now')
     .addToUi();
 }
 
@@ -129,7 +97,6 @@ function setupV56() {
 }
 
 function setupV57() { return setupV56(); }
-
 function setupV54() { return setupV56(); }
 function setupV5() { return setupV56(); }
 
