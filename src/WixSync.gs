@@ -18,7 +18,7 @@
  */
 
 const WIX_SYNC_V1 = {
-  VERSION: '1.0.2',
+  VERSION: '1.0.3',
   SITE_ID: '3a8621d0-68ca-458b-a8ee-70d8e69091a8',
   THROTTLE_MINUTES: 5,
   COLLECTIONS: {
@@ -138,7 +138,7 @@ function syncWixOnOpenV1_() {
 function syncWixSnapshotV1_() {
   const snapshot = buildWixSnapshotV1_();
   const results = {
-    overview: wixBulkSaveV1_(WIX_SYNC_V1.COLLECTIONS.OVERVIEW, [snapshot.overview]),
+    overview: wixBulkSaveV1_(WIX_SYNC_V1.COLLECTIONS.OVERVIEW, [snapshot.overview, snapshot.legacyOverview]),
     daily: wixBulkSaveV1_(WIX_SYNC_V1.COLLECTIONS.DAILY, snapshot.daily),
     futureSummary: wixBulkSaveV1_(WIX_SYNC_V1.COLLECTIONS.FUTURE_SUMMARY, [snapshot.futureSummary]),
     futureMonthly: wixBulkSaveV1_(WIX_SYNC_V1.COLLECTIONS.FUTURE_MONTHLY, snapshot.futureMonthly)
@@ -146,7 +146,7 @@ function syncWixSnapshotV1_() {
   return {
     snapshotDate: snapshot.snapshotDate,
     counts: {
-      overview: 1,
+      overview: 2,
       daily: snapshot.daily.length,
       futureSummary: 1,
       futureMonthly: snapshot.futureMonthly.length
@@ -276,6 +276,7 @@ function buildWixSnapshotV1_() {
   return {
     snapshotDate: snapshotDate,
     overview: { id: 'current', data: overviewData },
+    legacyOverview: { id: 'current-overview', data: overviewData },
     daily: daily,
     futureSummary: { id: 'baseline-current', data: futureSummaryData },
     futureMonthly: futureMonthly
