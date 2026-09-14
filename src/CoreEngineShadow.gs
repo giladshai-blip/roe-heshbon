@@ -1,15 +1,19 @@
 /**
  * ============================================================
- * רואה חשבון — Core Engine Shadow V0.1
+ * רואה חשבון — Core Engine Shadow V0.1.1
  * ============================================================
  * שלב Shadow בלבד. אינו מזין החלטות, אינו כותב KPI לדשבורד
  * ואינו מחליף את החישובים הקיימים.
  * מטרתו לחשב במקביל KPI קריטיים מאותו מקור אמת ולהשוות.
+ *
+ * V0.1.1:
+ * - runShadowParityV01 מציג חלון תוצאה ברור בתוך Apps Script/Spreadsheet UI.
+ * - התוצאה נרשמת גם ל-Execution log ללא שינוי נתונים פיננסיים.
  * ============================================================
  */
 
 const CORE_ENGINE_SHADOW_V01 = {
-  VERSION: 'V0.1',
+  VERSION: 'V0.1.1',
   TIMEZONE: 'Asia/Jerusalem',
   SHEETS: {
     CASHFLOW: 'תזרים',
@@ -104,7 +108,7 @@ function runShadowParityV01() {
   }
 
   const failed = comparisons.filter(function(x) { return !x.ok; });
-  return {
+  const result = {
     version: CORE_ENGINE_SHADOW_V01.VERSION,
     status: failed.length ? 'MISMATCH' : 'PASS',
     ok: failed.length === 0,
@@ -112,6 +116,48 @@ function runShadowParityV01() {
     comparisons: comparisons,
     failed: failed
   };
+
+  const summary = shadowBuildParitySummary_(result);
+  console.log(summary);
+  console.log(JSON.stringify(result));
+
+  try {
+    SpreadsheetApp.getUi().alert(
+      'בדיקת Shadow — ' + result.status,
+      summary,
+      SpreadsheetApp.getUi().ButtonSet.OK
+    );
+  } catch (e) {
+    try {
+      ss.toast(summary, 'בדיקת Shadow — ' + result.status, 10);
+    } catch (ignored) {}
+  }
+
+  return result;
+}
+
+function shadowBuildParitySummary_(result) {
+  const s = result.snapshot || {};
+  const lines = [
+    result.ok ? '🟢 PASS — כל ההשוואות תואמות' : '🔴 MISMATCH — נמצאו פערים',
+    '',
+    'עו״ש מחושב: ' + shadowMoney_(s.currentBalance),
+    'סוף חודש: ' + shadowMoney_(s.monthEnd),
+    'שפל 30 יום: ' + shadowMoney_(s.low30) + (s.low30Date ? ' | ' + s.low30Date : ''),
+    'כיסוי תחזית: ' + Number(s.coveredDays || 0) + '/30',
+    'מסגרת עו״ש: ' + shadowMoney_(s.checkingFrame),
+    'מרווח בשפל: ' + shadowMoney_(s.remainingFrameAtLow),
+    'חריגה צפויה: ' + (s.breachDate ? s.breachDate + ' | ' + shadowMoney_(s.breachAmount) : 'לא זוהתה')
+  ];
+
+  if (result.failed && result.failed.length) {
+    lines.push('', 'פערים:');
+    result.failed.forEach(function(item) {
+      lines.push('• ' + item.name);
+    });
+  }
+
+  return lines.join('\n');
 }
 
 function shadowCompareLowPoint_(snapshot, dash) {
@@ -226,6 +272,13 @@ function shadowNumber_(value) {
   if (value == null || String(value).trim() === '') return NaN;
   const n = Number(String(value).replace(/[^0-9.\-]/g, ''));
   return isFinite(n) ? n : NaN;
+}
+
+function shadowMoney_(value) {
+  const n = shadowNumber_(value);
+  return isFinite(n)
+    ? Number(n).toLocaleString('he-IL', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ₪'
+    : 'לא זמין';
 }
 
 function shadowSheet_(ss, name) {
