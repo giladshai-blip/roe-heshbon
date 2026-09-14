@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * רואה חשבון — Dashboard V5.7.0
+ * רואה חשבון — Dashboard V5.8.0
  * ============================================================
  * דשבורד משפחתי ללא שעונים:
  * - כרטיסי KPI ברורים.
@@ -8,14 +8,14 @@
  * - המלצות ומשימות דינמיות.
  * - אשראי: גם חשיפה משפחתית וגם הכרטיס בעל היחס הגבוה ביותר.
  * - יעד כרית ביטחון ממקור יחיד: גיליון יעדים.
- * - KPI שפל 30 יום נלקח מפונקציית Core משותפת ל-Core/Dashboard/Automation Engine.
+ * - KPI קריטיים נצרכים ממנוע Core מרכזי אחד.
  * ============================================================
  */
 
 const DASHBOARD_V56 = {
   SPREADSHEET_ID: '1a172bDSpW5L4gDXgrZDmh82NBgB2eOM2dUNiyCl1dbM',
   DASHBOARD_SHEET_NAME: 'לוח מחוונים',
-  VERSION: 'Dashboard V5.7.0',
+  VERSION: 'Dashboard V5.8.0',
   HELPER_START_COL: 25,
   HELPER_END_COL: 26
 };
@@ -55,8 +55,8 @@ function installDashboardV56() {
   SpreadsheetApp.flush();
   ss.setActiveSheet(sheet);
   sheet.getRange('A1').activate();
-  setConfigParam_('גרסת דשבורד','V5.7.0','','Dashboard V5.7.0');
-  ss.toast('Dashboard V5.7.0 נבנה בהצלחה', 'רואה חשבון', 8);
+  setConfigParam_('גרסת דשבורד','V5.8.0','','Dashboard V5.8.0');
+  ss.toast('Dashboard V5.8.0 נבנה בהצלחה', 'רואה חשבון', 8);
 }
 
 function refreshDashboardV56() { return installDashboardV56(); }
@@ -88,27 +88,28 @@ function buildDashboardV56HelperData_(sheet) {
     ['יחס כרטיס מקסימלי',''],['כרטיס בעל יחס מקסימלי',''],['יעד יחס אשראי באחוזים',''],
     ['מסגרת עו״ש',''],['מרווח במסגרת בשפל',''],['התראה פעילה',''],['פירוט התראה','']
   ]);
-  function numeric(expr) {return '=IFERROR(IF(ISNUMBER('+expr+'),'+expr+',"לא זמין"),"לא זמין")';}
-  const balance='INDEX(\'הגדרות\'!B:B,MATCH("יתרת עו״ש מחושבת אוטומטית",\'הגדרות\'!A:A,0))';
-  sheet.getRange('Z2').setFormula(numeric(balance));
-  sheet.getRange('Z3').setFormula(numeric(endOfMonthFormula_().slice(1)));
-  refreshDashboardForecastKpiV56(sheet);
+  if (typeof getFinancialSnapshotV58_ !== 'function') throw new Error('Core V5.8.0 אינו מותקן.');
+  const snapshot=getFinancialSnapshotV58_();
+  if(snapshot.coveredDays!==30) throw new Error('תחזית 30 יום אינה מלאה: '+snapshot.coveredDays+'/30.');
+  sheet.getRange('Z2').setValue(snapshot.currentBalance);
+  sheet.getRange('Z3').setValue(snapshot.monthEnd);
+  sheet.getRange('Z4').setValue(snapshot.low30).setNote('מקור: Core getFinancialSnapshotV58_ | תאריך שפל: '+snapshot.low30Date);
+  sheet.getRange('Z10').setValue(snapshot.lastSync||'');
+  sheet.getRange('Z11').setValue(snapshot.bankVerifiedAt||'');
+  sheet.getRange('Z15').setValue(snapshot.checkingFrame);
+  sheet.getRange('Z16').setValue(snapshot.remainingFrameAtLow);
   const cards="'כרטיסי אשראי'!";
   const eligible=cards+'G2:G>0,ISNUMBER('+cards+'H2:H),'+cards+'A2:A<>"",REGEXMATCH('+cards+'I2:I,"זהות.*אימות")=FALSE';
   const ratios='FILTER('+cards+'H2:H,'+eligible+')';
   sheet.getRange('Z5').setFormula('=IFERROR(SUM(FILTER('+cards+'E2:E,'+eligible+'))/SUM(FILTER('+cards+'G2:G,'+eligible+'))*100,"לא זמין")');
   const goalRow=findGoalRow_();
-  sheet.getRange('Z6').setFormula(numeric("'יעדים'!B"+goalRow));
-  sheet.getRange('Z7').setFormula(numeric("'יעדים'!C"+goalRow));
+  sheet.getRange('Z6').setFormula("='יעדים'!B"+goalRow);
+  sheet.getRange('Z7').setFormula("='יעדים'!C"+goalRow);
   sheet.getRange('Z8').setFormula('=IF(AND(ISNUMBER(Z6),ISNUMBER(Z7)),MAX(0,Z6-Z7),"לא זמין")');
   sheet.getRange('Z9').setFormula('=IF(AND(ISNUMBER(\'גאנט תזרים שנתי\'!B5),ISNUMBER(\'גאנט תזרים שנתי\'!B7),ISNUMBER(\'גאנט תזרים שנתי\'!B9)),\'גאנט תזרים שנתי\'!B5+\'גאנט תזרים שנתי\'!B7-\'גאנט תזרים שנתי\'!B9,"לא זמין")');
-  sheet.getRange('Z10').setFormula('=IFERROR(INDEX(\'הגדרות\'!B:B,MATCH("תאריך רענון אחרון",\'הגדרות\'!A:A,0)),"")');
-  sheet.getRange('Z11').setFormula('=IFERROR(INDEX(\'הגדרות\'!B:B,MATCH("תאריך ושעת יתרת עו״ש",\'הגדרות\'!A:A,0)),"")');
   sheet.getRange('Z12').setFormula('=IFERROR(MAX('+ratios+')*100,"לא זמין")');
   sheet.getRange('Z13').setFormula('=IFERROR(INDEX(FILTER('+cards+'C2:C,'+eligible+'),MATCH(MAX('+ratios+'),'+ratios+',0)),"לא זמין")');
-  sheet.getRange('Z14').setFormula(numeric('INDEX(\'הגדרות\'!B:B,MATCH("יעד ניצול אשראי",\'הגדרות\'!A:A,0))*100'));
-  sheet.getRange('Z15').setFormula(numeric('INDEX(\'הגדרות\'!B:B,MATCH("מסגרת עו״ש מאומתת",\'הגדרות\'!A:A,0))'));
-  sheet.getRange('Z16').setFormula('=IF(AND(ISNUMBER(Z15),ISNUMBER(Z4)),Z15+Z4,"לא זמין")');
+  sheet.getRange('Z14').setFormula('=IFERROR(INDEX(\'הגדרות\'!B:B,MATCH("יעד ניצול אשראי",\'הגדרות\'!A:A,0))*100,"לא זמין")');
   sheet.getRange('Z17').setFormula('=IFERROR(INDEX(FILTER(\'התראות מערכת\'!E2:E,\'התראות מערכת\'!I2:I="פתוח"),1),"אין התראות פתוחות")');
   sheet.getRange('Z18').setFormula('=IFERROR(INDEX(FILTER(\'התראות מערכת\'!F2:F,\'התראות מערכת\'!I2:I="פתוח"),1),"")');
   sheet.getRange('Z2:Z4').setNumberFormat('#,##0.00 ₪');
@@ -120,26 +121,21 @@ function buildDashboardV56HelperData_(sheet) {
 }
 
 function refreshDashboardForecastKpiV56(optionalSheet) {
-  const sheet = optionalSheet || getDashboardV56Sheet_();
-  if (typeof getForecast30DayMetrics_ !== 'function') {
-    sheet.getRange('Z4').setFormula(forecastMinimumFormula_());
-    return {covered: 0, minimum: NaN, minimumDate: ''};
+  const sheet=optionalSheet||getDashboardV56Sheet_();
+  if(typeof getFinancialSnapshotV58_!=='function') throw new Error('Core V5.8.0 אינו מותקן.');
+  const s=getFinancialSnapshotV58_();
+  if(s.coveredDays!==30||!isFinite(s.low30)){
+    sheet.getRange('Z4').setValue('לא זמין').setNote('תחזית 30 יום אינה מלאה.');
+    return{covered:s.coveredDays,minimum:NaN,minimumDate:''};
   }
-  let metrics;
-  try {
-    metrics = getForecast30DayMetrics_();
-  } catch (e) {
-    sheet.getRange('Z4').setFormula(forecastMinimumFormula_());
-    return {covered: 0, minimum: NaN, minimumDate: ''};
-  }
-  if (metrics && metrics.covered === 30 && isFinite(metrics.minimum)) {
-    sheet.getRange('Z4').setValue(metrics.minimum).setNumberFormat('#,##0.00 ₪');
-    sheet.getRange('Z4').setNote('מקור: Core getForecast30DayMetrics_ | תאריך שפל: ' + String(metrics.minimumDate || 'לא ידוע'));
-  } else {
-    sheet.getRange('Z4').setValue('לא זמין');
-    sheet.getRange('Z4').setNote('תחזית 30 יום אינה מלאה.');
-  }
-  return metrics;
+  sheet.getRange('Z2').setValue(s.currentBalance);
+  sheet.getRange('Z3').setValue(s.monthEnd);
+  sheet.getRange('Z4').setValue(s.low30).setNumberFormat('#,##0.00 ₪').setNote('מקור: Core getFinancialSnapshotV58_ | תאריך שפל: '+s.low30Date);
+  sheet.getRange('Z10').setValue(s.lastSync||'');
+  sheet.getRange('Z11').setValue(s.bankVerifiedAt||'');
+  sheet.getRange('Z15').setValue(s.checkingFrame);
+  sheet.getRange('Z16').setValue(s.remainingFrameAtLow);
+  return{covered:s.coveredDays,minimum:s.low30,minimumDate:s.low30Date};
 }
 
 function buildDashboardV56Layout_(sheet) {
@@ -288,11 +284,6 @@ function getDashboardV56Sheet_() {
   const sheet=ss.getSheetByName(DASHBOARD_V56.DASHBOARD_SHEET_NAME);
   if(!sheet) throw new Error('לא נמצא גיליון בשם "'+DASHBOARD_V56.DASHBOARD_SHEET_NAME+'".');
   return sheet;
-}
-
-// fallback בלבד לסביבת התקנה חלקית/בדיקות ישנות; במערכת מלאה Z4 נכתב מפונקציית Core המשותפת.
-function forecastMinimumFormula_() {
-  return '=IFERROR(LET(days,SEQUENCE(30,1,TODAY(),1),vals,MAP(days,LAMBDA(day,IFERROR(INDEX(FILTER(\'תזרים\'!G2:G400,\'תזרים\'!A2:A400=day,ISNUMBER(\'תזרים\'!G2:G400)),1),IFERROR(INDEX(FILTER(\'גאנט תזרים שנתי\'!I16:I400,\'גאנט תזרים שנתי\'!A16:A400=day,ISNUMBER(\'גאנט תזרים שנתי\'!I16:I400)),1),NA())))),IF(COUNT(vals)=30,MIN(vals),"לא זמין")),"לא זמין")';
 }
 
 function guardDashboardV561_(sheet) {
