@@ -67,7 +67,12 @@ const V56 = {
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('💼 רואה חשבון')
-    .addItem('🔄 סנכרון עכשיו', 'runV5Now')
+    .addItem('🏠 בית', 'openHomeV5')
+    .addSeparator()
+    .addItem('🔄 סנכרון RiseUp עכשיו', 'runV5Now')
+    .addItem('💰 עדכון יתרת עו״ש', 'promptVerifiedBankBalanceV5')
+    .addItem('📈 רענון תחזית', 'refreshForecastsV5')
+    .addItem('✅ בדיקת תקינות מערכת', 'healthCheckV5')
     .addToUi();
 }
 
@@ -217,6 +222,7 @@ function checkDuplicatesV5(){const sh=getSheet_('TRANSACTIONS');const lr=sh.getL
 function scanVerificationStatusV5(){const sh=getSheet_('VERIFICATION');const lr=sh.getLastRow();const rows=lr>1?sh.getRange(2,1,lr-1,9).getDisplayValues():[];const result=summarizeVerification_(rows);SpreadsheetApp.getUi().alert('סריקת אימות','נושאים פעילים: '+result.active+' מתוך '+result.total,SpreadsheetApp.getUi().ButtonSet.OK);return result;}
 function showSystemStatusV5(){const h=healthCheckV56_();const sync=getConfigParam_('תאריך רענון אחרון');const anchor=getConfigParam_('תאריך ושעת יתרת עו״ש');const text='Core: '+String(getConfigParam_('גרסת מערכת')||'')+'\nDashboard: '+String(getConfigParam_('גרסת דשבורד')||'')+'\nסנכרון אחרון: '+formatDateTime_(sync)+'\nאימות עו״ש: '+formatDateTime_(anchor)+'\n\n'+h.summary;SpreadsheetApp.getUi().alert('סטטוס מערכת',text,SpreadsheetApp.getUi().ButtonSet.OK);return text;}
 function openDashboardV5(){const ss=getSpreadsheet_(),sh=getSheet_('DASHBOARD');ss.setActiveSheet(sh);sh.getRange('A1').activate();}
+function openHomeV5(){const ss=getSpreadsheet_(),sh=ss.getSheetByName('בית');if(!sh)throw new Error('לא נמצא גיליון: בית');ss.setActiveSheet(sh);sh.getRange('A1').activate();}
 function installRiseupSyncTriggerV5(){deleteV5Triggers();ScriptApp.newTrigger('syncRiseUpV5').timeBased().everyHours(V56.SYNC_INTERVAL_HOURS).create();const count=getRiseupSyncTriggerCount_();if(count!==1)throw new Error('התקנת טריגר RiseUp לא הסתיימה במצב תקין; נמצאו '+count+' טריגרים');setConfigParam_('תדירות סנכרון RiseUp',V56.SYNC_INTERVAL_HOURS,'שעות','טריגר אוטומטי מאומת; syncRiseUpV5');getSpreadsheet_().toast('טריגר RiseUp הותקן: כל '+V56.SYNC_INTERVAL_HOURS+' שעות','רואה חשבון',5);return{intervalHours:V56.SYNC_INTERVAL_HOURS,triggerCount:count};}
 function installHourlyTriggerV5(){return installRiseupSyncTriggerV5();}
 function deleteV5Triggers(){ScriptApp.getProjectTriggers().forEach(function(t){if(t.getHandlerFunction()==='syncRiseUpV5')ScriptApp.deleteTrigger(t);});}
