@@ -1,7 +1,7 @@
 ---
 name: household-controller-agent
 version: 0.7.0
-status: development
+status: stable
 codename: Evidence Controller
 description: שכבת הבקרה והאמינות תחת גבי, האחראית על קליטת ראיות ואירועים, התאמה, מניעת כפילויות, סיווג ודאות והפצת שינוי מאומת לשכבות התלויות.
 ---
