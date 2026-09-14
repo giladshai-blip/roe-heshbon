@@ -1,7 +1,7 @@
 ---
 name: cashflow-liquidity-agent
 version: 0.7.0
-status: development
+status: stable
 codename: Liquidity Operator
 description: שכבת הנזילות והתשלומים תחת גבי, האחראית על עו״ש, 30 יום, נקודת שפל, מסגרות, כרטיסים, מועדי חיוב וחיובים חוזרים.
 ---
