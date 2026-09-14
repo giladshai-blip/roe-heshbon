@@ -19,7 +19,7 @@
 
 const WIX_SYNC_V1 = {
   VERSION: '1.0.3',
-  SITE_ID: '3a8621d0-68ca-458b-a8ee-70d8e69091a8',
+  SITE_ID: '82b1e79a-f65d-4148-81bc-6a60f1dbaeff',
   THROTTLE_MINUTES: 5,
   COLLECTIONS: {
     OVERVIEW: 'FamilyOverview',
