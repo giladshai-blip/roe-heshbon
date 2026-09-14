@@ -37,7 +37,8 @@ description: מנתב בקשות במערכת רואה חשבון ל־Skill המ
 - חיסכון, השקעה, נדל״ן להשקעה, הקצאת הון, נזילות, הון נטו או בניית הון ל־5 שנים → `wealth-investment-planner`.
 - פנסיה, גמל, השתלמות, כיסויים פנסיוניים, דמי ניהול, מסלולים או פרישה → `retirement-pension-advisor`.
 - ביטוחי בריאות/חיים/משכנתא/דירה/רכב, כפל ביטוחי, חוסר כיסוי או עלות ביטוח כוללת → `insurance-coverage-auditor`.
-- תקלה, סנכרון, כפילות, נוסחה, דשבורד, KPI, איכות נתונים או בריאות מערכת → `financial-system-auditor`.
+- תקלה, סנכרון, כפילות, נוסחה, איכות נתונים או בריאות מערכת → `financial-system-auditor`.
+- ארכיטקטורת חישובים, בעלות KPI, drift בין קוד לגיליון, ריכוז לוגיקה, Shadow/Parity/Cutover או מעבר ל"מוח אחד" → `financial-model-architect`, עם `financial-system-auditor` כתומך לבקרת תקינות.
 
 ## בקשה משולבת
 כאשר בקשה נוגעת ליותר מתחום אחד:
@@ -56,6 +57,7 @@ description: מנתב בקשות במערכת רואה חשבון ל־Skill המ
 - "האם שכר חדש יספיק כדי לצאת מהמינוס?" → `income-tax-scenario-planner` מוביל, `cashflow-guardian` תומך.
 - "איך לשפר את פרופיל האשראי בלי לפגוע בתזרים?" → `credit-profile-optimizer` מוביל, `credit-card-optimizer` ו־`cashflow-guardian` תומכים לפי הצורך.
 - "האם נכון להשקיע בנכס עכשיו?" → `wealth-investment-planner` מוביל, `cashflow-guardian` ו־`debt-loan-strategist` תומכים.
+- "איפה אותו KPI מחושב ביותר ממקום אחד ואיך מרכזים אותו?" → `financial-model-architect` מוביל, `financial-system-auditor` תומך.
 
 ## סדר עדיפות נתונים
 1. נתון חדש בשיחה הנוכחית.
