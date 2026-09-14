@@ -9,7 +9,11 @@
 `Gabi → Domain Sub-agent → Skills`
 
 כללי הניתוב המלאים: `agents/family-cfo-agent/SUBAGENTS.md`.
+מטריצת בעלות Skills קנונית: `agents/family-cfo-agent/SKILL-OWNERSHIP-MATRIX.md`.
 מקור הסמכות העליון: `docs/project-instructions.md` ב־`main`.
+
+## כלל Ownership
+לכל Skill יש Owner יחיד. Sub-agent אחר יכול להשתמש בו כ־Supporting או לצרוך את פלטו כ־External Dependency, אך אינו משכפל את הלוגיקה ואינו יוצר גרסה מקומית משלו.
 
 ## 1. family-cfo-agent — גבי
 הסוכן הראשי והיחיד בשיחה.
@@ -22,6 +26,9 @@
 - לשמור גבולות אישור;
 - לבצע Financial Self-Check;
 - להחזיר החלטה אחת ברורה ומעשית.
+
+Owned Direct Skills:
+`financial-skill-router`, `financial-system-auditor`, `financial-model-architect`.
 
 ## 2. household-controller-agent — Evidence Controller
 שכבת האמינות והקליטה.
@@ -41,6 +48,7 @@
 - עו״ש, 30 יום, סוף חודש ונקודת שפל;
 - מסגרת ומרווח ביטחון;
 - כרטיסים, הוראות קבע וחיובים חוזרים;
+- פרופיל אשראי תזרימי;
 - מועדי חיוב וריכוז תשלומים;
 - סיכון לחריגה/החזרה.
 
@@ -61,7 +69,8 @@
 בעלות:
 - Before → After;
 - החלטות רב־תקופתיות;
-- תקציב מבני, חוב והשקעות;
+- תקציב וכיול תחזית;
+- חוב והשקעות;
 - שנה קדימה ותוכנית 5 שנים;
 - רגישות, הפיכות ותנאי החלטה.
 
@@ -79,17 +88,18 @@
 
 `Controller → Domain Agent(s) → Gabi`
 
-כאשר Skill יחיד מספיק, גבי רשאי להפעילו ישירות כדי להימנע מ־agent sprawl.
+כאשר Skill יחיד מספיק, גבי רשאי להפעילו ישירות כדי להימנע מ־agent sprawl, אך הבעלות על ה־Skill אינה משתנה.
 
 כללי קדימות:
 - Controller FAIL חוסם החלטה שתלויה בנתון.
 - Cashflow CRITICAL גובר על Planning חיובי.
 - Income & Tax הוא בעל חישוב ההכנסה נטו.
 - Protection & Retirement הוא בעל הכיסוי והפרישה.
+- Planning הוא בעל התרחיש הרב־תקופתי.
 - Gabi הוא בעל ההחלטה הסופית.
 
 ## Skills מערכתיים
-`financial-system-auditor` ו־`financial-model-architect` נשארים Skills ישירים של גבי למשימות מערכת/ארכיטקטורה. אין Sub-agent טכני נוסף ללא צורך מוכח.
+`financial-skill-router`, `financial-system-auditor` ו־`financial-model-architect` נשארים Skills ישירים של גבי למשימות אורקסטרציה/מערכת/ארכיטקטורה. אין Sub-agent טכני נוסף ללא צורך מוכח.
 
 ## Runtime
 Sub-agents אינם תהליכי רקע עצמאיים. ניטור עתידי/מתוזמן דורש Automation או Runtime מחובר.
