@@ -1,7 +1,7 @@
 ---
 name: protection-retirement-agent
 version: 0.7.0
-status: development
+status: stable
 codename: Protection & Retirement Strategist
 description: שכבת הפנסיה, הביטוח וההגנה המשפחתית תחת גבי, האחראית על כיסויים, דמי ניהול, שכר מבוטח, כפילויות, פערים ותחזית פרישה.
 ---
