@@ -1,19 +1,20 @@
 /**
  * ============================================================
- * רואה חשבון — Core V5.7.0
+ * רואה חשבון — Core V5.8.0
  * ============================================================
  * קובץ מלא להחלפת Code.gs ב-Google Apps Script.
  *
- * עיקרי V5.7.0:
+ * עיקרי V5.8.0:
  * - מקור קנוני אחד ל-Core ומקור קנוני אחד ל-Dashboard.
+ * - מקור חישוב מרכזי אחד ל-KPI קריטיים: עו״ש, סוף חודש, שפל 30 יום, מסגרת וחריגה.
+ * - Dashboard צורך את מנוע ה-Core ואינו מחשב מחדש KPI קריטיים.
  * - בדיקות Runtime מובנות למבנה, כפילויות, עסקאות, תחזית ו-KPI.
- * - תמיכה בדשבורד המציג התראה פעילה ומרווח מסגרת עו״ש בשפל.
  * ============================================================
  */
 
 const V56 = {
-  VERSION: 'V5.7.0',
-  DASHBOARD_VERSION: 'V5.7.0',
+  VERSION: 'V5.8.0',
+  DASHBOARD_VERSION: 'V5.8.0',
   SPREADSHEET_ID: '1a172bDSpW5L4gDXgrZDmh82NBgB2eOM2dUNiyCl1dbM',
   TIMEZONE: 'Asia/Jerusalem',
   API_BASE: 'https://input.riseup.co.il',
@@ -96,6 +97,7 @@ function setupV56() {
   } finally { lock.releaseLock(); }
 }
 
+function setupV58() { return setupV56(); }
 function setupV57() { return setupV56(); }
 function setupV54() { return setupV56(); }
 function setupV5() { return setupV56(); }
@@ -293,4 +295,5 @@ function addDaysKey_(key,days){return new Date(Date.parse(key+'T12:00:00Z')+days
 function endOfCashflow_(rows){if(!rows.length||!isValidDate_(rows[0][0]))return{value:NaN,day:''};const month=dayKey_(rows[0][0]).slice(0,7),parts=month.split('-').map(Number),last=new Date(Date.UTC(parts[0],parts[1],0)).toISOString().slice(0,10),row=rows.find(function(r){return dayKey_(r[0])===last;});return{value:row?numberOrNaN_(row[6]):NaN,day:last};}
 function forecastWindow_(cashRows,annualRows,now){const map=Object.create(null);annualRows.forEach(function(r){if(isValidDate_(r[0])&&isFinite(numberOrNaN_(r[8])))map[dayKey_(r[0])]=Number(r[8]);});cashRows.forEach(function(r){if(isValidDate_(r[0])&&isFinite(numberOrNaN_(r[6])))map[dayKey_(r[0])]=Number(r[6]);});const values=[];let minimum=Infinity,minimumDate='';for(let i=0;i<30;i++){const key=addDaysKey_(dayKey_(now),i);if(map[key]!==undefined){const value=map[key];values.push(value);if(value<minimum){minimum=value;minimumDate=key;}}}return{covered:values.length,minimum:values.length===30?minimum:NaN,minimumDate:values.length===30?minimumDate:'',values:values};}
 function getForecast30DayMetrics_(){const cash=getSheet_('CASHFLOW');const annual=getSheet_('ANNUAL_CASHFLOW');const cashRows=cash.getRange(2,1,Math.max(1,cash.getLastRow()-1),7).getValues();const annualRows=annual.getRange(16,1,Math.max(1,annual.getLastRow()-15),9).getValues();return forecastWindow_(cashRows,annualRows,new Date());}
+function getFinancialSnapshotV58_(){const cash=getSheet_('CASHFLOW'),annual=getSheet_('ANNUAL_CASHFLOW');const cashRows=cash.getRange(2,1,Math.max(1,cash.getLastRow()-1),7).getValues(),annualRows=annual.getRange(16,1,Math.max(1,annual.getLastRow()-15),9).getValues();const forecast=forecastWindow_(cashRows,annualRows,new Date()),end=endOfCashflow_(cashRows),currentBalance=numberOrNaN_(getConfigParam_('יתרת עו״ש מחושבת אוטומטית')),checkingFrame=numberOrNaN_(getConfigParam_('מסגרת עו״ש מאומתת'));let breachDate='',breachAmount=NaN;if(isFinite(checkingFrame)&&checkingFrame>0&&forecast.covered===30){for(let i=0;i<forecast.values.length;i++){const value=forecast.values[i];const date=addDaysKey_(dayKey_(new Date()),i);if(value<-checkingFrame){breachDate=date;breachAmount=value;break;}}}return{version:V56.VERSION,calculatedAt:new Date(),currentBalance:currentBalance,monthEnd:end.value,monthEndDate:end.day,low30:forecast.minimum,low30Date:forecast.minimumDate,coveredDays:forecast.covered,checkingFrame:checkingFrame,remainingFrameAtLow:isFinite(checkingFrame)&&checkingFrame>0&&isFinite(forecast.minimum)?checkingFrame+forecast.minimum:NaN,breachDate:breachDate,breachAmount:breachAmount,lastSync:getConfigParam_('תאריך רענון אחרון'),bankVerifiedAt:getConfigParam_('תאריך ושעת יתרת עו״ש')};}
 function auditTransactions_(rows){const result={duplicates:0,invalid:0,missingMonth:0,legacySeen:0,ccTotal:0,ccIncome:0,noId:0},seen=Object.create(null),validDirections=['הכנסה','הוצאה','העברה פנימית'];rows.forEach(function(r){const key=transactionKeyFromRow_(r);if(!key)return;if(seen[key])result.duplicates++;seen[key]=true;if(!String(r[0]||'').trim())result.noId++;if(!isValidDate_(r[1])||!isFinite(numberOrNaN_(r[5]))||Number(r[5])<0||validDirections.indexOf(String(r[6]||'').trim())===-1)result.invalid++;if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(r[2]||'')))result.missingMonth++;if(!isValidDate_(r[20])||(isValidDate_(r[1])&&dayKey_(r[20])===dayKey_(r[1])))result.legacySeen++;if(r[7]==='creditCard'){result.ccTotal++;if(r[6]==='הכנסה')result.ccIncome++;}});return result;}
