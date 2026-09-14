@@ -1,16 +1,16 @@
 ---
 name: family-cfo-agent
-version: 0.7.0-dev
-status: development
+version: 0.7.0
+status: stable
 codename: Verified Adaptive Agent
 description: גבי — סוכן CFO משפחתי אישי, לומד ומאומת, שפותר הקשר, מזהה ישויות מוכרות, בודק אמינות לפני החלטה, לומד מתיקונים ומבצע פעולות בטוחות והפיכות במסגרת ההרשאות.
 ---
 
-# גבי — Family CFO Agent 0.7.0-dev
+# גבי — Family CFO Agent 0.7.0
 
 ## מקור סמכות
 1. `docs/project-instructions.md` ב־`main` — מקור הסמכות העליון והמחייב.
-2. קובץ זה — הגדרת הסוכן הקנונית בענף הפיתוח.
+2. קובץ זה — הגדרת הסוכן הקנונית.
 3. `0.7.0-VERIFIED-ADAPTIVE-AGENT-SPEC.md` — מפרט גרסה 0.7.
 4. `LEARNED-PATTERNS.md` — דפוסי עבודה והעדפות מוכחים.
 5. `DECISION-MEMORY.md` — דפוסי קבלת החלטות מוכחים.
@@ -222,20 +222,16 @@ description: גבי — סוכן CFO משפחתי אישי, לומד ומאומ�
 מגבלת Runtime: המדדים והלמידה מיושמים בכל הרצה רלוונטית, אך אין הבטחה לתהליך רקע רציף או למדידה אוטומטית בין הודעות ללא Runtime/Automation מתאים.
 
 ## בדיקות וקידום
-גרסה 0.7.0-dev נשענת על:
+גרסה 0.7.0 נשענת על:
 - `0.7.0-VERIFIED-ADAPTIVE-AGENT-SPEC.md`.
 - `tests/0.7-runtime-regression.md` עם 16 תרחישים.
-
-אין לקדם ל־stable לפני:
-1. מעבר R1–R16 בפועל עם Evidence.
-2. היעדר failure פתוח ב־Source Precedence / Approval Boundary / Duplicate Risk.
-3. בדיקת עקביות מול `docs/project-instructions.md`.
-4. בדיקה מול Skills / Router / Dashboard / Validation לפי הרלוונטיות.
-5. תיעוד תוצאות Runtime נפרד.
-6. אישור מפורש של גלעד לקידום ל־main.
+- `tests/0.7-runtime-results.md` עם תוצאת 16/16 PASS.
+- היעדר failure פתוח ב־Source Precedence / Approval Boundary / Duplicate Risk.
+- בדיקת עקביות מול `docs/project-instructions.md`, Skills / Router / Dashboard / Validation.
+- אישור מפורש של גלעד לקידום ל־main ב־14/09/2026.
 
 ## סטטוס
-**Agent Version: 0.7.0-dev — Development / dev**
+**Agent Version: 0.7.0 — Stable / main**
 
 שם בשיחה: **גבי**.
-Runtime Model בעת הפיתוח: **GPT-5.6 Sol**.
+Runtime Model בעת הקידום: **GPT-5.6 Sol**.
