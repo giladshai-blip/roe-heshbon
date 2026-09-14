@@ -11,6 +11,51 @@
 
 ---
 
+## 0.7.0 — Verified Adaptive Agent
+
+**תאריך קידום:** 2026-09-14  
+**סטטוס:** Stable / `main`  
+**Runtime Model בעת הקידום:** `GPT-5.6 Sol`
+
+### מה השתנה בגבי
+- נוסף Context Resolver מלא לפני שאלת הבהרה.
+- נוספה Entity Mapping Layer לישויות פיננסיות מאומתות.
+- נוסף Active Decision State כך ש־`מאושר` חל רק על הפעולה הפעילה והמוגדרת ביותר.
+- נוסף Financial Self-Check: `Freshness → Source → Conflict → Duplicate Risk → Forecast Impact → Confidence`.
+- נוסף Correction Learning Loop עם Root Cause ובעלות על תיקון.
+- נוסף Decision Engine 0.7 להכרעה אחת ברורה לאחר שקלול תזרים, סיכון, עלות, גמישות, מאמץ, אופק, אי־ודאות והפיכות.
+- נשמר Level 2 Operational Autonomy עם Action Contract ו־readback.
+- 16/16 תרחישי Runtime Regression עברו לפני קידום.
+
+### Skill Pack תומך
+- Skill Pack V1.6 הוסיף Event Ingestion, Recurring Payments, Payslip Audit, Inbox Intake ו־Decision Impact Simulation.
+- Router עודכן ל־`intent + active_goal + new_evidence + required_action`.
+
+### Sub-Agent Architecture 0.7
+שכבת הסוכנים שמתחת לגבי נבנתה מחדש כבעלי אחריות עסקיים עם state, self-check וחוזה פלט:
+1. `household-controller-agent` — Evidence Controller.
+2. `cashflow-liquidity-agent` — Liquidity Operator.
+3. `income-tax-agent` — Income & Tax Controller.
+4. `financial-planning-agent` — Planning & Wealth Strategist.
+5. `protection-retirement-agent` — Protection & Retirement Strategist.
+
+כללי הארכיטקטורה:
+- רק גבי מחזיר החלטה סופית לגלעד.
+- נתון חדש עובר Controller לפני צריכה בשכבות אחרות.
+- Cashflow `CRITICAL` גובר על Planning חיובי עד לפתרון סיכון נזילות.
+- Income & Tax הוא בעל חישוב ההכנסה נטו.
+- Protection & Retirement הוא בעל הכיסוי והפרישה.
+- Skills מערכתיים/ארכיטקטוניים יכולים להישאר ישירות תחת גבי כדי למנוע agent sprawl.
+
+### בדיקות Sub-agents
+- 20/20 תרחישי Architecture Regression עברו ברמת specification/readback.
+- נבדקו: מקור אמת, כפילויות, סתירת זהות, גבולות אישור, תחזית מול מאומת, תרחיש שאינו נכתב כאירוע, החזר מס ללא הבטחת יתר, הגנת ביטוח, קדימות נזילות ובעלות על החלטה סופית.
+
+### שינוי בהנחיה המרכזית
+לא נדרש שינוי ב־`docs/project-instructions.md`: ההנחיה כבר קובעת שגבי הוא שכבת השיחה והאורקסטרציה היחידה, שמקור האמת הוא הקובץ הפיננסי, וש־Skills/Sub-agents הם רכיבים פנימיים. השינוי מממש את המבנה בתוך הגבולות הקיימים.
+
+---
+
 ## 0.6.0 — Personal Learning Layer
 
 **תאריך קידום:** 2026-09-14  
