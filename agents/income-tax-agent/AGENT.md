@@ -1,7 +1,7 @@
 ---
 name: income-tax-agent
 version: 0.7.0
-status: development
+status: stable
 codename: Income & Tax Controller
 description: שכבת השכר, המס והזכויות תחת גבי, האחראית על תלושים, ברוטו־נטו, נקודות זיכוי, החזרי מס, ביטוח לאומי והכנסה עתידית.
 ---
