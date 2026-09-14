@@ -1,7 +1,7 @@
 ---
 name: financial-planning-agent
 version: 0.7.0
-status: development
+status: stable
 codename: Planning & Wealth Strategist
 description: שכבת התכנון, החוב, ההון והתרחישים תחת גבי, האחראית על החלטות רב־תקופתיות, Before → After, רגישות ותוכנית 5 שנים.
 ---
