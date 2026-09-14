@@ -1,8 +1,8 @@
 # Skill Pack — רואה חשבון
 
-חבילת Skills יציבה למערכת הפיננסית. כל Skill חייב לפעול תחת ההנחיה המרכזית שב־`main/docs/project-instructions.md` ולהתייחס לקובץ `רואה חשבון - מערכת פיננסית` כמקור האמת המרכזי.
+חבילת Skills למערכת הפיננסית. כל Skill חייב לפעול תחת ההנחיה המרכזית שב־`main/docs/project-instructions.md` ולהתייחס לקובץ `רואה חשבון - מערכת פיננסית` כמקור האמת המרכזי.
 
-גרסה נוכחית: **V1.5 ב־main**. מועמדת ב־`dev`: **V1.6 — Context & Automation Layer**.
+גרסת החבילה במסמך זה: **V1.6 — Context & Automation Layer**. היא נבנתה ונבדקה ב־`dev` עם **22/22 PASS** לפני קידום.
 
 ## Skills
 
@@ -106,7 +106,7 @@ Skill חדש מוצדק רק כאשר יש לו אחריות ברורה שאינ
 - V1.2: 19/19 וקודמה ל־`main`.
 - V1.3: 31/31 PASS.
 - V1.4: 49/49 PASS.
-- V1.5: `financial-model-architect` כבר קיים ב־`main`; Registry יושר ב־V1.6 כדי לשקף זאת.
-- V1.6: מועמדת ב־`dev`; בדיקות רגרסיה ייעודיות נדרשות לפני קידום.
+- V1.5: `financial-model-architect` קיים ב־`main`.
+- V1.6: **22/22 PASS** בבדיקות Context & Automation ב־`dev`; דוח: `tests/v1.6-context-automation-results.md`.
 
 דוחות הבדיקה נמצאים תחת `tests/`.
