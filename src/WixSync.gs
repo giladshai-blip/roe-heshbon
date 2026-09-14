@@ -18,8 +18,8 @@
  */
 
 const WIX_SYNC_V1 = {
-  VERSION: '1.0.0',
-  SITE_ID: '75bb6330-2c9a-44c7-9946-beb771e35558',
+  VERSION: '1.0.1',
+  SITE_ID: '3a8621d0-68ca-458b-a8ee-70d8e69091a8',
   THROTTLE_MINUTES: 5,
   COLLECTIONS: {
     OVERVIEW: 'FamilyOverview',
