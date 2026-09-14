@@ -18,7 +18,7 @@
  */
 
 const WIX_SYNC_V1 = {
-  VERSION: '1.0.1',
+  VERSION: '1.0.2',
   SITE_ID: '3a8621d0-68ca-458b-a8ee-70d8e69091a8',
   THROTTLE_MINUTES: 5,
   COLLECTIONS: {
@@ -85,6 +85,10 @@ function doPost(e) {
   return jsonOutputV1_({ ok: false, error: 'UNKNOWN_ACTION' });
 }
 
+function runSyncWixSnapshotV1() {
+  return syncWixSnapshotV1_();
+}
+
 function syncWixOnOpenV1_() {
   const props = PropertiesService.getScriptProperties();
   const gate = LockService.getScriptLock();
@@ -109,7 +113,6 @@ function syncWixOnOpenV1_() {
       };
     }
 
-    // קובעים את זמן הניסיון לפני השחרור כדי למנוע שתי פתיחות מקבילות.
     props.setProperty('WIX_LAST_SITE_OPEN_SYNC_AT', now.toISOString());
   } finally {
     gate.releaseLock();
