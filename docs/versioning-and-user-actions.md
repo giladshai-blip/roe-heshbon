@@ -7,23 +7,35 @@ The repository uses one human-facing version for the whole system.
 - `main` releases MUST start with `core-`.
 - `dev` releases MUST start with `dev-`.
 - Format: `<channel>-MAJOR.MINOR.PATCH`.
-- Promotion keeps the numeric part and changes only the channel prefix: `dev-1.1.0` -> `core-1.1.0`.
+- Promotion keeps the numeric part and changes only the channel prefix: `dev-1.2.0` -> `core-1.2.0`.
 - `release.json` is the machine-readable source of truth for the active release.
 
-### Current reset baseline
+### Current baseline
 
 | Scope | Canonical version | Previous identifiers kept only as legacy build IDs |
 |---|---|---|
 | Approved `main` baseline | `core-1.0.0` | Core `V5.9.0`, Dashboard `V5.8.0`, family agent `0.7.2`, sub-agents `0.7.0` |
-| Active `dev` | `dev-1.1.0` | Core `V5.10.1`, Dashboard `V5.9.0`, family agent `0.7.3-dev`, sub-agents `0.7.0`, Wix `1.0.3` |
+| Active `dev` | `dev-1.2.0` | Core `V5.10.1`, Dashboard `V5.9.0`, family agent `0.7.3-dev`, sub-agents `0.7.0`, Wix `1.0.3` |
 
-Legacy build IDs are retained only where existing triggers, function calls or historical audit trails depend on them. They are not valid human-facing release versions.
+Legacy build IDs are retained only where triggers, compatibility calls or historical audit trails depend on them. They are not human-facing release versions.
 
 ## Version increments
 
 - PATCH: bug fix, wording fix, safe compatibility change.
-- MINOR: new capability, new conversation mode, new user action, dashboard feature.
+- MINOR: new capability, conversation routing behavior, user action, dashboard feature.
 - MAJOR: breaking data model, migration, incompatible API or major architecture replacement.
+
+## Conversation routing
+
+`dev-1.2.0` defines three user-facing conversation modes:
+
+1. `GABI_AGENT` — selected by `1` or `היי גבי`.
+2. `DEV_ENVIRONMENT` — selected by `2` or `היי dev`.
+3. `CORE_RUNTIME` — selected by `3` or `היי core`.
+
+A numeric selection activates the mode immediately. No second trigger is required.
+
+`החלף מצב` or `תפריט` returns to the three-mode selector.
 
 ## Public function naming
 
@@ -69,6 +81,7 @@ Rules:
 
 `שחזר` always restores the active experiment component(s) from the latest approved `main` state. It never means "go back to the previous dev commit" unless explicitly requested.
 
-Safety branches for this refactor:
+Safety branches:
 - `backup/main-pre-core-1.0.0-20260915`
 - `backup/dev-pre-release-train-20260915`
+- `backup/dev-pre-three-mode-router-20260915`
