@@ -1,19 +1,21 @@
 {
   "schema": 1,
-  "channel": "core",
-  "version": "core-1.5.0",
-  "approved": true,
+  "channel": "dev",
+  "version": "dev-2.0.0",
+  "approved": false,
+  "promotionTarget": "core-2.0.0",
+  "approvedCore": "core-1.5.0",
   "components": {
-    "appsScriptCore": "core-1.5.0",
-    "dashboard": "core-1.5.0",
-    "familyCfoAgent": "core-1.5.0",
-    "devEngineeringAgent": "core-1.5.0",
-    "cashflowLiquidityAgent": "core-1.5.0",
-    "financialPlanningAgent": "core-1.5.0",
-    "householdControllerAgent": "core-1.5.0",
-    "incomeTaxAgent": "core-1.5.0",
-    "protectionRetirementAgent": "core-1.5.0",
-    "conversationRouter": "core-1.5.0"
+    "appsScriptCore": "dev-2.0.0",
+    "dashboard": "dev-2.0.0",
+    "familyCfoAgent": "dev-2.0.0",
+    "devEngineeringAgent": "dev-2.0.0",
+    "cashflowLiquidityAgent": "dev-2.0.0",
+    "financialPlanningAgent": "dev-2.0.0",
+    "householdControllerAgent": "dev-2.0.0",
+    "incomeTaxAgent": "dev-2.0.0",
+    "protectionRetirementAgent": "dev-2.0.0",
+    "conversationRouter": "dev-2.0.0"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
@@ -25,6 +27,13 @@
     "incomeTaxAgent": "0.7.0",
     "protectionRetirementAgent": "0.7.0"
   },
+  "dashboardPublicApi": {
+    "install": "installFinancialDashboard",
+    "refresh": "refreshFinancialDashboard",
+    "clear": "clearFinancialDashboard",
+    "test": "testFinancialDashboard",
+    "legacyNames": "compatibility-only"
+  },
   "routing": {
     "unsetMenu": ["GABI_AGENT", "DEV_ENVIRONMENT", "CORE_RUNTIME"],
     "directTriggers": {
@@ -34,12 +43,6 @@
       "היי core": "CORE_RUNTIME"
     },
     "technicalOwnership": "dev-engineering-agent"
-  },
-  "startup": {
-    "gabiFastStart": true,
-    "pureGreetingFinancialDriveCalls": 0,
-    "lazyRuntime": true,
-    "conversationCache": true
   },
   "engineering": {
     "defaultDevBranch": "dev",
@@ -51,6 +54,7 @@
     "gabiMustCheckCanonicalGitHubBeforeUnknownClaim": true
   },
   "restore": {
-    "role": "latest approved source for dev restore"
+    "source": "core-1.5.0",
+    "scope": "active experiment components only"
   }
 }
