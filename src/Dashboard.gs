@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * רואה חשבון — Dashboard V5.10.0
+ * רואה חשבון — Dashboard | Release dev-1.4.0 | Legacy Build V5.10.0
  * ============================================================
  * מיועד ל-Core V5.10.1.
  *
@@ -15,7 +15,7 @@
  *
  * התקנה:
  * 1) החלף את Dashboard.gs בקובץ זה.
- * 2) ודא ש-Code.gs הוא Core V5.10.1.
+ * 2) ודא ש-Code.gs הוא Legacy Build Core V5.10.1 או release תואם שמספק getFinancialSnapshotV510_.
  * 3) הרץ installDashboardV5100().
  * ============================================================
  */
@@ -23,7 +23,8 @@
 const DASHBOARD_V56 = {
   SPREADSHEET_ID: '1a172bDSpW5L4gDXgrZDmh82NBgB2eOM2dUNiyCl1dbM',
   DASHBOARD_SHEET_NAME: 'לוח מחוונים',
-  VERSION: 'Dashboard V5.10.0',
+  VERSION: 'dev-1.4.0',
+  LEGACY_BUILD_ID: 'V5.10.0',
   HELPER_START_COL: 25,
   HELPER_END_COL: 26
 };
@@ -70,8 +71,9 @@ function installDashboardV56() {
   SpreadsheetApp.flush();
   ss.setActiveSheet(sheet);
   sheet.getRange('A1').activate();
-  setConfigParam_('גרסת דשבורד','V5.10.0','','Dashboard V5.10.0 — 30D trough + overdraft interest');
-  ss.toast('Dashboard V5.10.0 נבנה בהצלחה', 'רואה חשבון', 8);
+  setConfigParam_('גרסת דשבורד',DASHBOARD_V56.VERSION,'','Dashboard release | Legacy Build '+DASHBOARD_V56.LEGACY_BUILD_ID+' | 30D trough + overdraft interest');
+  setConfigParam_('Legacy Build ID — Dashboard',DASHBOARD_V56.LEGACY_BUILD_ID,'','Compatibility/build identifier only');
+  ss.toast('Dashboard '+DASHBOARD_V56.VERSION+' נבנה בהצלחה', 'רואה חשבון', 8);
 
   return {
     version: DASHBOARD_V56.VERSION,
@@ -107,7 +109,7 @@ function clearCleanDashboardV54() { return clearDashboardV56(); }
 
 function activateDashboardV510CoreVersion_() {
   try {
-    if (typeof V56 !== 'undefined' && V56) V56.DASHBOARD_VERSION = 'V5.10.0';
+    if (typeof V56 !== 'undefined' && V56) V56.DASHBOARD_VERSION = DASHBOARD_V56.VERSION;
   } catch (e) {}
 }
 
@@ -456,7 +458,8 @@ function runDashboardSelfTestV5100() {
   activateDashboardV510CoreVersion_();
   const sheet = getDashboardV56Sheet_();
   const checks = [
-    ['גרסת דשבורד', String(getConfigParam_('גרסת דשבורד')) === 'V5.10.0'],
+    ['גרסת דשבורד', String(getConfigParam_('גרסת דשבורד')) === DASHBOARD_V56.VERSION],
+    ['Legacy Build ID', String(getConfigParam_('Legacy Build ID — Dashboard')) === DASHBOARD_V56.LEGACY_BUILD_ID],
     ['שפל 30 יום מספרי', isFinite(Number(sheet.getRange('Z19').getValue()))],
     ['תאריך שפל קיים', !!sheet.getRange('Z20').getDisplayValue()],
     ['אזור שפל קיים', !!sheet.getRange('Z21').getDisplayValue()],
@@ -465,7 +468,7 @@ function runDashboardSelfTestV5100() {
     ['פאנל מוצג', sheet.getRange('A35').getDisplayValue() === 'שפל וריבית — 30 יום']
   ];
   const failed = checks.filter(function(x){ return !x[1]; });
-  const summary = (failed.length ? '🔴 ' : '🟢 ') + (checks.length-failed.length) + '/' + checks.length + ' בדיקות Dashboard V5.10.0 עברו' + (failed.length ? '\n' + failed.map(function(x){return '• '+x[0];}).join('\n') : '');
-  SpreadsheetApp.getUi().alert('Dashboard V5.10.0', summary, SpreadsheetApp.getUi().ButtonSet.OK);
+  const summary = (failed.length ? '🔴 ' : '🟢 ') + (checks.length-failed.length) + '/' + checks.length + ' בדיקות Dashboard '+DASHBOARD_V56.VERSION+' עברו' + (failed.length ? '\n' + failed.map(function(x){return '• '+x[0];}).join('\n') : '');
+  SpreadsheetApp.getUi().alert('Dashboard '+DASHBOARD_V56.VERSION, summary, SpreadsheetApp.getUi().ButtonSet.OK);
   return {ok: failed.length===0, checks: checks, summary: summary};
 }
