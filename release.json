@@ -6,12 +6,22 @@
   "components": {
     "appsScriptCore": "core-1.0.0",
     "dashboard": "core-1.0.0",
-    "familyCfoAgent": "core-1.0.0"
+    "familyCfoAgent": "core-1.0.0",
+    "cashflowLiquidityAgent": "core-1.0.0",
+    "financialPlanningAgent": "core-1.0.0",
+    "householdControllerAgent": "core-1.0.0",
+    "incomeTaxAgent": "core-1.0.0",
+    "protectionRetirementAgent": "core-1.0.0"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.9.0",
     "dashboard": "V5.8.0",
-    "familyCfoAgent": "0.7.2"
+    "familyCfoAgent": "0.7.2",
+    "cashflowLiquidityAgent": "0.7.0",
+    "financialPlanningAgent": "0.7.0",
+    "householdControllerAgent": "0.7.0",
+    "incomeTaxAgent": "0.7.0",
+    "protectionRetirementAgent": "0.7.0"
   },
   "restore": {
     "role": "latest approved source for dev restore"
