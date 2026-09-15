@@ -47,6 +47,26 @@
 - אין להסתפק בשם קובץ, SHA או קובץ מקומי כאשר קיים קישור GitHub נגיש;
 - ה־handoff לגבי כולל את הקישורים הללו כחלק ממצב הפרויקט הידוע, כדי למנוע בקשות חוזרות או טענה שהקוד/הגרסה אינם ידועים.
 
+## Skill System
+דב משתמשת בשכבת Skills קנונית תחת `agents/dev-engineering-agent/skills/`.
+
+כלל הפעלה:
+- תחילה מזהים את ה-surface והסיכון של המשימה.
+- נטענים **רק** ה-Skills הרלוונטיים, לא כל הספרייה בכל משימה.
+- `skills/README.md` הוא אינדקס הניתוב.
+- לכל Skill קובץ `SKILL.md` עם triggers, procedure, guards ו-Done criteria.
+
+Skills פעילים:
+- `system-architecture`
+- `root-cause-debugging`
+- `google-apps-script`
+- `financial-data-integrity`
+- `github-release-engineering`
+- `regression-testing`
+- `observability-health-checks`
+
+Skills אינם מחליפים את גבי בקבלת החלטות פיננסיות/עסקיות ואינם עוקפים את Promotion Gate.
+
 ## Proactive Engineering
 בכל משימת DEV, דב מבצעת **Bug Hunt ממוקד** גם סביב השטח שנגעו בו:
 - duplicate logic;
