@@ -14,8 +14,8 @@ The repository uses one human-facing version for the whole system.
 
 | Scope | Canonical version | Previous identifiers kept only as legacy build IDs |
 |---|---|---|
-| Approved `main` baseline | `core-1.0.0` | Core `V5.9.0`, Dashboard `V5.8.0`, Agent `0.7.2` |
-| Active `dev` | `dev-1.1.0` | Core `V5.10.1`, Dashboard `V5.9.0`, Agent `0.7.3-dev`, Wix `1.0.3` |
+| Approved `main` baseline | `core-1.0.0` | Core `V5.9.0`, Dashboard `V5.8.0`, family agent `0.7.2`, sub-agents `0.7.0` |
+| Active `dev` | `dev-1.1.0` | Core `V5.10.1`, Dashboard `V5.9.0`, family agent `0.7.3-dev`, sub-agents `0.7.0`, Wix `1.0.3` |
 
 Legacy build IDs are retained only where existing triggers, function calls or historical audit trails depend on them. They are not valid human-facing release versions.
 
@@ -33,6 +33,7 @@ Rules:
 - Verb first: `syncNow`, `openDashboard`, `checkSystemHealth`.
 - One clear action per function.
 - Avoid implementation words such as `V5`, `V56`, `runtime`, `handler` in user-facing names.
+- Manual credential actions should open a prompt instead of requiring function parameters.
 - Internal helpers end with `_` and may remain technical.
 - Existing versioned functions remain compatibility aliases until all triggers and callers are migrated.
 
@@ -49,7 +50,7 @@ Rules:
 | הרץ אבחון מלא | `runSystemDiagnostics` | `runRuntimeSelfTestV57` |
 | בדוק כפילויות | `checkDuplicateTransactions` | `checkDuplicatesV5` |
 | בדוק אימות נתונים | `reviewDataVerification` | `scanVerificationStatusV5` |
-| הצג מצב מערכת | `showSystemStatus` | `showSystemStatusV5` |
+| הצג מצב מערכת | `showSystemStatus` | friendly status wrapper |
 | פתח דשבורד | `openDashboard` | `openDashboardV5` |
 | הפעל סנכרון אוטומטי | `enableAutomaticSync` | `installRiseupSyncTriggerV5` |
 | בטל סנכרון אוטומטי | `disableAutomaticSync` | `deleteV5Triggers` |
@@ -57,13 +58,17 @@ Rules:
 | בנה דשבורד | `buildDashboard` | `installDashboardV56` |
 | רענן דשבורד | `refreshDashboard` | `refreshDashboardV56` |
 | אפס דשבורד | `resetDashboard` | `clearDashboardV56` |
-| שמור מפתח Wix | `saveWixApiKey` | `setWixApiKeyV1` |
-| נקה מפתח Wix | `clearWixApiKey` | `clearWixApiKeyV1` |
+| עדכן חיבור RiseUp | `updateRiseUpToken` | prompt → `setRiseupPatV5` |
+| נקה חיבור RiseUp | `clearRiseUpToken` | `clearRiseupPatV5` |
+| עדכן חיבור Wix | `updateWixApiKey` | prompt → `setWixApiKeyV1` |
+| נקה חיבור Wix | `clearWixApiKey` | `clearWixApiKeyV1` |
 | סנכרן Wix עכשיו | `syncWixNow` | `runSyncWixSnapshotV1` |
-| הצג גרסה | `showReleaseInfo` | new wrapper |
+| הצג גרסה | `showReleaseInfo` | release wrapper |
 
 ## Restore contract
 
 `שחזר` always restores the active experiment component(s) from the latest approved `main` state. It never means "go back to the previous dev commit" unless explicitly requested.
 
-Before destructive refactors, keep a safety branch. For this refactor: `backup/dev-pre-release-train-20260915`.
+Safety branches for this refactor:
+- `backup/main-pre-core-1.0.0-20260915`
+- `backup/dev-pre-release-train-20260915`
