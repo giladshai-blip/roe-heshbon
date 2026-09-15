@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * רואה חשבון — User Actions — dev-1.1.0
+ * רואה חשבון — User Actions — dev-1.2.0
  * ============================================================
  * שכבת פונקציות ידידותית למשתמש.
  *
@@ -11,8 +11,8 @@
 
 const USER_RELEASE = Object.freeze({
   CHANNEL: 'dev',
-  VERSION: 'dev-1.1.0',
-  PROMOTION_TARGET: 'core-1.1.0',
+  VERSION: 'dev-1.2.0',
+  PROMOTION_TARGET: 'core-1.2.0',
   APPROVED_CORE: 'core-1.0.0'
 });
 
