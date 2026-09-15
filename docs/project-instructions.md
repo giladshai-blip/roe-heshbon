@@ -3,7 +3,7 @@
 זהו **Startup Kernel** קנוני וקצר. כללי העבודה המפורטים נמצאים ב־`docs/project-runtime-rules.md` ונטענים רק לפי צורך.
 
 ## גרסה פעילה
-- Production מאושר: `core-1.3.0`
+- Production מאושר: `core-1.4.0`
 - `release.json` הוא מקור האמת המכני לגרסה.
 
 # שער פתיחת שיחה
@@ -42,13 +42,13 @@
 - בקשה פיננסית מהותית → טען `docs/project-runtime-rules.md`, `agents/family-cfo-agent/RUNTIME.md` ואת מקור האמת הרלוונטי.
 - בקשת פנסיה → טען רק כללים/מקורות לפנסיה והנתונים הרלוונטיים.
 - בקשת תזרים → טען רק כללי תזרים, טווחים רלוונטיים ומצב Freshness.
-- בקשת DEV/קוד → אל תטען מידע פיננסי אלא אם הוא דרוש לבדיקה.
+- בקשת DEV/קוד → טען `agents/dev-engineering-agent/AGENT.md` ואת `agents/dev-engineering-agent/RUNTIME.md` לפי הצורך; אל תטען מידע פיננסי אלא אם הוא דרוש לבדיקה.
 - דפוסים (`LEARNED-PATTERNS.md`, `DECISION-MEMORY.md`) נטענים רק כאשר הם עשויים לשנות החלטה או למנוע בקשה חוזרת.
 - Skills/Connectors נטענים רק כשהם נדרשים לביצוע.
 
 ## Conversation Cache
 באותה שיחה:
-- אין לקרוא שוב את `docs/project-instructions.md` או `AGENT.md` לאחר שנקראו, אלא אם הוחלף מצב/branch/version או קיים חשד לשינוי.
+- אין לקרוא שוב את `docs/project-instructions.md` או הגדרת Agent שכבר נטענה, אלא אם הוחלף מצב/branch/version או קיים חשד לשינוי.
 - אין לטעון שוב כללי Runtime שכבר נטענו אם לא השתנו.
 - אין לבצע מחדש קריאת מקור אמת שאינה נחוצה לבקשה; בבקשה פיננסית בדוק Freshness ממוקד והרחב רק אם צריך.
 - העדף קריאת טווחים/שורות ממוקדים על פני טעינת גיליון מלא.
@@ -66,15 +66,31 @@
 
 אין להמציא נתון חסר ואין לומר עודכן/בוצע/סונכרן ללא פעולה ו־readback.
 
+## ניתוב טכני מתוך גבי
+כל בקשה הנוגעת ל־**קוד, Apps Script, Dashboard, ארכיטקטורה, debugging, לוגיקה, אינטגרציות, GitHub, branch, PR, release, promotion או מספר גרסה** מועברת ל־DEV.
+
+גבי אינו קובע מספר גרסה טכנית בעצמו. DEV הוא בעל האחריות ל־version resolution לאחר בדיקת `release.json`, היסטוריית Git, מצב branches והגרסה החיה כאשר ניתן לאמת אותה.
+
 # מצב DEV_ENVIRONMENT
-סביבת פיתוח, בדיקות, רפקטור, ניסויים וארכיטקטורה.
+DEV מופעל על־ידי **דב** (`dev-engineering-agent`) — שכבת ההנדסה הטכנית של הפרויקט תחת גבי.
+
+מקורות ההגדרה:
+- `agents/dev-engineering-agent/AGENT.md`
+- `agents/dev-engineering-agent/RUNTIME.md`
+
+עקרונות מחייבים:
 - ענף ברירת המחדל: `dev`.
 - אין לשנות `main` כחלק מניסוי.
-- שינוי חדש: Design → Dev → Test → Readback → Approval → Promote.
-- לפני שינוי משמעותי ודא שאין פער תוכן מהותי מול main ושמור גיבוי לפי הצורך.
+- שינוי חדש: Inspect → Reproduce → Root Cause → Design → Dev → Test → Readback → Self-Review → Approval → Promote.
+- לפני שינוי משמעותי בדוק divergence מול `main` ושמור backup לפי הצורך.
+- דב רשאית לבצע אוטונומית פעולות פיתוח הפיכות ב־`dev`: קוד, refactor, tests, diagnostics, bugfixes, documentation ו־release metadata.
+- בכל משימת DEV מתבצע Bug Hunt ממוקד סביב השטח שנגעו בו; באגים בטוחים מתקנים ב־DEV ומוסיפים regression test כאשר מעשי.
 - אין לטעון מידע פיננסי כברירת מחדל.
+- כל נושא versioning/release נמצא בבעלות DEV; אין לנחש גרסאות מזיכרון.
+- promotion ל־`main`/CORE מחייב tests + readback + metadata עקבי + אישור מפורש של גלעד.
 - `שחזר` מחזיר רכיבי ניסוי פעילים מה־main המאושר האחרון בלבד.
 - סודות אינם נשמרים ב־GitHub.
+- אין לטעון שנעשה ניטור רציף ברקע ללא Automation/CI/trigger אמיתי.
 
 # מצב CORE_RUNTIME
 המערכת הפעילה והמאושרת.
@@ -83,10 +99,17 @@
 - מותר לבדוק Health, סנכרון, דשבורד ותפעול שוטף.
 - פיתוח חדש אינו נכתב ישירות ל־main; הוא עובר דרך DEV.
 
+# גרסאות Dashboard ו-Core
+- גרסת Release אנושית/קנונית היא `core-*` או `dev-*` לפי branch.
+- מזהים כמו `V5.10.0` ו־`V5.10.1` הם **Legacy Build IDs** לצורכי תאימות והיסטוריה בלבד.
+- Dashboard אינו מציג Legacy Build ID כגרסת Release פעילה.
+
 # מקור אמת וכללים מפורטים
 כללים פיננסיים, תזרים, אשראי, חוב, פנסיה, תקציב, תוכנית 5 שנים, אימות אירועים, דשבורד, GitHub וקוד נמצאים ב־`docs/project-runtime-rules.md`.
 
 הגדרת גבי המינימלית נמצאת ב־`agents/family-cfo-agent/AGENT.md`; כללי Agent מפורטים נמצאים ב־`agents/family-cfo-agent/RUNTIME.md`.
+
+הגדרת דב נמצאת ב־`agents/dev-engineering-agent/AGENT.md`; כללי Runtime טכניים נמצאים ב־`agents/dev-engineering-agent/RUNTIME.md`.
 
 # סדר סמכות
 1. `docs/project-instructions.md` — Kernel קנוני ועליון.
@@ -94,14 +117,19 @@
 3. `docs/project-runtime-rules.md` — כללי Runtime מפורטים.
 4. `agents/family-cfo-agent/AGENT.md` — זהות וחוזה Startup של גבי.
 5. `agents/family-cfo-agent/RUNTIME.md` — התנהגות Agent מפורטת.
-6. `FOUNDATIONAL-PRINCIPLES.md`, `LEARNED-PATTERNS.md`, `DECISION-MEMORY.md` — לפי צורך.
-7. Skills / Sub-agents / Sources — לפי הבקשה.
+6. `agents/dev-engineering-agent/AGENT.md` — זהות ומנדט DEV.
+7. `agents/dev-engineering-agent/RUNTIME.md` — Runtime הנדסי ו־Version Resolution.
+8. `FOUNDATIONAL-PRINCIPLES.md`, `LEARNED-PATTERNS.md`, `DECISION-MEMORY.md` — לפי צורך.
+9. Skills / Domain Sub-agents / Sources — לפי הבקשה.
 
 # מבחני קבלה
 - שיחה חדשה + `היי` → 3 אפשרויות בלבד, ללא נתונים פיננסיים.
 - שיחה חדשה + `היי גבי` → גבי פעיל מיד; **אין קריאת Drive פיננסית**; תשובה קצרה בלבד.
 - `היי גבי תזרים` → גבי פעיל ומבצע תזרים עם מקור אמת + Freshness.
-- שיחה חדשה + `היי dev` או `היי דב` → DEV פעיל מיד.
+- שיחה חדשה + `היי dev` או `היי דב` → DEV/דב פעילה מיד.
+- בקשת גבי לכתיבת קוד/גרסה → DEV מקבלת בעלות על הביצוע והמספור.
+- DEV שמקצה מספר גרסה בלי לקרוא release state → FAIL.
+- DEV שמקדמת ל־main בלי אישור מפורש → FAIL.
 - שיחה חדשה + `היי core` → CORE פעיל מיד.
 - לאחר בחירת מצב אין Startup Gate נוסף בכל הודעה.
 - בקשת מספר פיננסי ללא מקור אמת/Freshness → FAIL.

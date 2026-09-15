@@ -1,22 +1,23 @@
 {
   "schema": 1,
   "channel": "core",
-  "version": "core-1.3.0",
+  "version": "core-1.4.0",
   "approved": true,
   "components": {
-    "appsScriptCore": "core-1.3.0",
-    "dashboard": "core-1.3.0",
-    "familyCfoAgent": "core-1.3.0",
-    "cashflowLiquidityAgent": "core-1.3.0",
-    "financialPlanningAgent": "core-1.3.0",
-    "householdControllerAgent": "core-1.3.0",
-    "incomeTaxAgent": "core-1.3.0",
-    "protectionRetirementAgent": "core-1.3.0",
-    "conversationRouter": "core-1.3.0"
+    "appsScriptCore": "core-1.4.0",
+    "dashboard": "core-1.4.0",
+    "familyCfoAgent": "core-1.4.0",
+    "devEngineeringAgent": "core-1.4.0",
+    "cashflowLiquidityAgent": "core-1.4.0",
+    "financialPlanningAgent": "core-1.4.0",
+    "householdControllerAgent": "core-1.4.0",
+    "incomeTaxAgent": "core-1.4.0",
+    "protectionRetirementAgent": "core-1.4.0",
+    "conversationRouter": "core-1.4.0"
   },
   "legacyBuildIds": {
-    "appsScriptCore": "V5.9.0",
-    "dashboard": "V5.8.0",
+    "appsScriptCore": "V5.10.1",
+    "dashboard": "V5.10.0",
     "familyCfoAgent": "0.7.2",
     "cashflowLiquidityAgent": "0.7.0",
     "financialPlanningAgent": "0.7.0",
@@ -31,13 +32,21 @@
       "היי dev": "DEV_ENVIRONMENT",
       "היי דב": "DEV_ENVIRONMENT",
       "היי core": "CORE_RUNTIME"
-    }
+    },
+    "technicalOwnership": "dev-engineering-agent"
   },
   "startup": {
     "gabiFastStart": true,
     "pureGreetingFinancialDriveCalls": 0,
     "lazyRuntime": true,
     "conversationCache": true
+  },
+  "engineering": {
+    "defaultDevBranch": "dev",
+    "versionOwner": "dev-engineering-agent",
+    "promotionRequiresExplicitApproval": true,
+    "proactiveBugHuntPerTask": true,
+    "continuousBackgroundMonitoring": false
   },
   "restore": {
     "role": "latest approved source for dev restore"
