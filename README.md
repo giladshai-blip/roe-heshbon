@@ -2,15 +2,15 @@
 
 מערכת פיננסית משפחתית מבוססת Google Sheets, Google Apps Script, RiseUp API ו־Wix.
 
-## גרסה
+## גרסאות
 
-**גרסת הפיתוח הפעילה: `dev-1.2.0`**  
-**גרסה מאושרת ב־main: `core-1.0.0`**  
-יעד הקידום: **`core-1.2.0`**.
+**גרסת production מאושרת: `core-1.2.0`**  
+**גרסת הפיתוח הפעילה: `dev-1.3.0`**  
+יעד הקידום הבא: **`core-1.3.0`**.
 
-קיימת גרסת Release אחת למערכת כולה. מזהים ישנים נשמרים רק כ־Legacy Build IDs לצורכי תאימות והיסטוריה. מקור האמת למספור הוא `release.json`.
+מקור האמת למספור הוא `release.json` בכל branch.
 
-## Router של שיחה
+## Router של שיחה — מאושר ב־core-1.2.0
 
 כל שיחה חדשה מתחילה בשלוש אפשרויות בלבד:
 
@@ -21,22 +21,18 @@
 בחירה `1` / `2` / `3` מנתבת מיד למצב המתאים. אין צורך בטריגר נוסף אחרי בחירת מספר.
 
 הטריגרים הישירים מדלגים על התפריט:
-- `היי גבי` → GABI_AGENT
-- `היי dev` → DEV_ENVIRONMENT
-- `היי core` → CORE_RUNTIME
+- `היי גבי` → `GABI_AGENT`
+- `היי dev` → `DEV_ENVIRONMENT`
+- `היי core` → `CORE_RUNTIME`
 
 `החלף מצב` או `תפריט` מחזירים לתפריט שלושת המצבים.
 
-מפרט: `docs/dev-1.2.0-three-mode-conversation-router.md`.
-בדיקות: `tests/dev-1.2.0-three-mode-router-regression.md`.
-
 ## כללי מספור
 
-- `main`: קידומת `core-`.
-- `dev`: קידומת `dev-`.
-- פורמט: `<channel>-MAJOR.MINOR.PATCH`.
-- בקידום שומרים על המספר ומחליפים קידומת: `dev-1.2.0` → `core-1.2.0`.
-- `שחזר` מחזיר רכיבי ניסוי מה־main המאושר האחרון.
+- כל Release ב־`main` מתחיל ב־`core-`.
+- כל Release ב־`dev` מתחיל ב־`dev-`.
+- קיימת גרסת Release אחת למערכת כולה.
+- Legacy Build IDs נשמרים רק לתאימות והיסטוריה.
 
 ## קבצי Apps Script פעילים ב־dev
 
@@ -66,16 +62,14 @@
 - `syncWixNow` — סנכרן Wix.
 - `showReleaseInfo` — הצג Release.
 
-שמות Legacy נשארים זמנית רק לתאימות פנימית.
-
 ## פיתוח בטוח
 
-- `main` הוא מצב מאושר ויציב.
-- פיתוח חדש מתבצע ב־`dev`.
+- `main` הוא production מאושר.
+- `dev` הוא פיתוח וניסויים.
 - CORE אינו סביבת ניסוי; שינוי חדש מנותב ל־DEV.
-- לפני רפקטור משמעותי נשמר branch גיבוי.
-- לפני קידום נדרשות בדיקות רגרסיה ו־readback.
-- גיבוי לניסוי הנוכחי: `backup/dev-pre-three-mode-router-20260915`.
+- `שחזר` מחזיר רכיבי ניסוי מה־main המאושר האחרון ולא מגרסת dev ישנה.
+- גיבוי לפני Router: `backup/dev-pre-three-mode-router-20260915`.
+- גיבוי production: `backup/main-pre-core-1.2.0-router-20260915`.
 
 ## אבטחה
 
