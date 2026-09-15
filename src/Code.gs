@@ -1,21 +1,22 @@
 /**
  * ============================================================
- * רואה חשבון — Core V5.10.0
+ * רואה חשבון — Core V5.10.1
  * ============================================================
  * קובץ מלא להחלפת Code.gs ב-Google Apps Script.
  *
- * עיקרי V5.10.0:
+ * עיקרי V5.10.1:
+ * - גיליון "תנועות" נשמר אוטומטית בסדר כרונולוגי יורד אחרי Setup וסנכרון.
  * - "מוח אחד": Snapshot מרכזי יחיד ל-KPI תזרים, תקציב, אשראי וכרית ביטחון.
  * - גיליון "תקציב חודשי" הפך לצרכן KPI: הכנסות, הוצאות, קבועות, משתנות, מסגרות ומאזנים מחושבים ב-Core.
  * - Dashboard צורך את אותו Snapshot ואינו מחשב מחדש KPI פיננסיים.
  * - נשמרת הפרדה בין מאזן בפועל למאזן חודשי מתוכנן כדי למנוע שינוי סמנטיקה.
  * - מנגנון התאמת תזרים מתוכנן ↔ תנועות עבר נשאר ב-Core עם סינון סטטוס מדויק.
- * - בדיקות Runtime כוללות כעת parity של KPI בין Core לתצוגות.
+ * - בדיקות Runtime כוללות כעת parity של KPI בין Core לתצוגות ובדיקת סדר כרונולוגי.
  * ============================================================
  */
 
 const V56 = {
-  VERSION: 'V5.10.0',
+  VERSION: 'V5.10.1',
   DASHBOARD_VERSION: 'V5.9.0',
   SPREADSHEET_ID: '1a172bDSpW5L4gDXgrZDmh82NBgB2eOM2dUNiyCl1dbM',
   TIMEZONE: 'Asia/Jerusalem',
@@ -86,6 +87,7 @@ function setupV56() {
     setupSyncLogHeaders_();
     applyModelIntegrityFixes_();
     ensureAutomaticBankBalanceFormula_();
+    sortTransactionsChronologically_();
     refreshDuplicateFormulas_();
     setConfigParam_('גרסת מערכת', V56.VERSION, '', 'Core ' + V56.VERSION);
     setConfigParam_('מקור עסקאות', 'get_transactions', '', 'RiseUp External API');
@@ -103,6 +105,7 @@ function setupV56() {
   } finally { lock.releaseLock(); }
 }
 
+function setupV5101() { return setupV56(); }
 function setupV510() { return setupV56(); }
 function setupV59() { return setupV56(); }
 function setupV58() { return setupV56(); }
@@ -139,7 +142,7 @@ function syncRiseUpV5() {
     metrics.budgetUpdated=syncBudget_(currentMonth,budget);
     setConfigParam_('תאריך רענון אחרון',new Date(),'','RiseUp Sync '+V56.VERSION);
     setConfigParam_('מצב hash',metrics.budgetUpdated?'UPDATED':'SKIPPED_UNCHANGED','','Budget hash');
-    applyModelIntegrityFixes_();ensureAutomaticBankBalanceFormula_();refreshDuplicateFormulas_();SpreadsheetApp.flush();
+    applyModelIntegrityFixes_();ensureAutomaticBankBalanceFormula_();sortTransactionsChronologically_();refreshDuplicateFormulas_();SpreadsheetApp.flush();
     metrics.reconciliation=getPlannedReconciliationV59_();
     refreshFinancialViewsV510_();
     SpreadsheetApp.flush();
@@ -159,7 +162,7 @@ function syncRiseUpHistory12MonthsV5(){
     validateRequiredSheets_();validateSyncSchema_();validateModelLayout_();const pat=getRiseupPat_();const months=[];const now=new Date();months.push.apply(months,syncMonthsAt_(now,12).reverse());
     let all=[];const details=[];
     months.forEach(function(m){const r=riseupGet_('/api/external/transactions?cashflowMonth='+encodeURIComponent(m),pat);const txs=requireTransactions_(r);details.push(m+': '+txs.length);all=all.concat(withCashflowMonth_(txs,m));});
-    const result=upsertTransactions_(all);applyModelIntegrityFixes_();ensureAutomaticBankBalanceFormula_();SpreadsheetApp.flush();refreshDuplicateFormulas_();
+    const result=upsertTransactions_(all);applyModelIntegrityFixes_();ensureAutomaticBankBalanceFormula_();SpreadsheetApp.flush();sortTransactionsChronologically_();refreshDuplicateFormulas_();
     refreshFinancialViewsV510_();
     SpreadsheetApp.flush();
     const health=healthCheckV56_();
@@ -170,7 +173,7 @@ function syncRiseUpHistory12MonthsV5(){
 
 function promptVerifiedBankBalanceV5(){const ui=SpreadsheetApp.getUi();const r=ui.prompt('עדכון יתרת עו״ש מאומתת','הזן יתרת עו״ש מהבנק. מספר שלילי למינוס.',ui.ButtonSet.OK_CANCEL);if(r.getSelectedButton()!==ui.Button.OK)return;const input=String(r.getResponseText()).replace(/,/g,'').replace(/₪/g,'').trim();if(!/^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/.test(input))throw new Error('היתרה אינה מספר תקין');const value=Number(input);if(!isFinite(value))throw new Error('היתרה אינה מספר תקין');const lock=LockService.getScriptLock();if(!lock.tryLock(30000))throw new Error('סנכרון פעיל; נסה שוב לאחר סיומו');try{setConfigParam_('יתרת עו״ש נוכחית ידנית',value,'₪','עוגן מאומת ידנית; אינו יתרה חיה');setConfigParam_('תאריך ושעת יתרת עו״ש',new Date(),'תאריך/שעה','מועד אימות העוגן');ensureAutomaticBankBalanceFormula_();SpreadsheetApp.flush();refreshFinancialViewsV510_();SpreadsheetApp.flush();}finally{lock.releaseLock();}ui.alert('עודכן עוגן העו״ש',healthCheckV56_().summary,ui.ButtonSet.OK);}
 
-function refreshForecastsV5(){const lock=LockService.getScriptLock();if(!lock.tryLock(30000))throw new Error('סנכרון פעיל');try{validateRequiredSheets_();validateSyncSchema_();applyModelIntegrityFixes_();ensureAutomaticBankBalanceFormula_();refreshDuplicateFormulas_();SpreadsheetApp.flush();refreshFinancialViewsV510_();SpreadsheetApp.flush();const h=healthCheckV56_();logSync_({action:'Forecast Refresh '+V56.VERSION,status:h.status,records:0,message:'רענון הפניות ללא שינוי הנחות',syncState:'FORECAST_REFRESH',health:h.summary});getSpreadsheet_().toast(h.summary,'רואה חשבון',8);return h;}finally{lock.releaseLock();}}
+function refreshForecastsV5(){const lock=LockService.getScriptLock();if(!lock.tryLock(30000))throw new Error('סנכרון פעיל');try{validateRequiredSheets_();validateSyncSchema_();applyModelIntegrityFixes_();ensureAutomaticBankBalanceFormula_();sortTransactionsChronologically_();refreshDuplicateFormulas_();SpreadsheetApp.flush();refreshFinancialViewsV510_();SpreadsheetApp.flush();const h=healthCheckV56_();logSync_({action:'Forecast Refresh '+V56.VERSION,status:h.status,records:0,message:'רענון הפניות ללא שינוי הנחות',syncState:'FORECAST_REFRESH',health:h.summary});getSpreadsheet_().toast(h.summary,'רואה חשבון',8);return h;}finally{lock.releaseLock();}}
 
 function healthCheckV5(){const h=healthCheckV56_();SpreadsheetApp.getUi().alert('Health Check '+V56.VERSION,h.summary,SpreadsheetApp.getUi().ButtonSet.OK);return h;}
 
@@ -182,6 +185,7 @@ function runRuntimeSelfTestV57(){
   test('מבנה מודל',function(){validateModelLayout_();return 'נקודות העיגון קיימות';});
   test('מניעת כפילויות',function(){const sh=getSheet_('TRANSACTIONS'),rows=sh.getLastRow()>1?sh.getRange(2,1,sh.getLastRow()-1,21).getValues():[],s=auditTransactions_(rows);if(s.duplicates)throw new Error(s.duplicates+' כפילויות');return rows.length+' עסקאות נבדקו';});
   test('תקינות עסקאות',function(){const sh=getSheet_('TRANSACTIONS'),rows=sh.getLastRow()>1?sh.getRange(2,1,sh.getLastRow()-1,21).getValues():[],s=auditTransactions_(rows);if(s.invalid)throw new Error(s.invalid+' עסקאות לא תקינות');return 'סכום, תאריך וכיוון תקינים';});
+  test('סדר כרונולוגי בתנועות',function(){if(!transactionsAreChronologicallySorted_())throw new Error('גיליון תנועות אינו מסודר מהחדש לישן');return 'תנועות מסודרות מהחדש לישן';});
   test('כיסוי תחזית 30 יום',function(){const m=getForecast30DayMetrics_();if(m.covered!==30)throw new Error('כיסוי '+m.covered+'/30');return 'שפל '+formatMoney_(m.minimum)+' בתאריך '+m.minimumDate;});
   test('התאמת תזרים מתוכנן',function(){const r=getPlannedReconciliationV59_();return 'זכאים '+r.eligible+' | התאמות בטוחות '+r.matched+' | לבדיקה '+r.review;});
   test('מוח אחד — KPI תקציב',function(){const errors=[];validateCoreKpiViewParityV510_(getFinancialSnapshotV510_(),errors);if(errors.length)throw new Error(errors.join(' | '));return 'תקציב חודשי ודשבורד תואמים ל-Core';});
@@ -207,7 +211,7 @@ function healthCheckV56_(){
   const goalRow=findGoalRow_();const goal=numberOrNaN_(getSheet_('GOALS').getRange(goalRow,2).getValue());const targetRow=findConfigRow_('יעד כרית ביטחון',false);if(getSheet_('CONFIG').getRange(targetRow,2).getFormula()!=="='יעדים'!B"+goalRow)errors.push('יעד ההגדרות אינו מפנה למקור היחיד ביעדים');if(annual.getRange('B10').getFormula()!=="='יעדים'!B"+goalRow)errors.push('יעד הגאנט אינו מפנה ליעדים');
   const plan=getSheet_('FIVE_YEAR_PLAN');const c5=plan.getRange('C5').getFormula().replace(/\s/g,'');if(c5==='=B15+C15*12')errors.push('שנה 1 בתוכנית 5 השנים מתחילה ממאזן חודשי במקום מיתרת עו״ש');
   ['CASHFLOW','ANNUAL_CASHFLOW','BUDGET','FIVE_YEAR_PLAN','PLANNED_CASHFLOW'].forEach(function(key){const sh=getSheet_(key);const formulas=sh.getDataRange().getFormulas();for(let r=0;r<formulas.length;r++)for(let c=0;c<formulas[r].length;c++){if(/(?:'לוח מחוונים'|לוח מחוונים)!/.test(formulas[r][c]))errors.push('תלות בדשבורד: '+sh.getName()+'!'+columnToLetter_(c+1)+(r+1));}});
-  const tx=getSheet_('TRANSACTIONS');const rows=tx.getLastRow()>1?tx.getRange(2,1,tx.getLastRow()-1,21).getValues():[];const stats=auditTransactions_(rows);if(stats.duplicates)errors.push('נמצאו '+stats.duplicates+' מזהי עסקה כפולים');if(stats.invalid)errors.push('נמצאו '+stats.invalid+' עסקאות עם סכום/כיוון/תאריך לא תקינים');if(stats.missingMonth)warnings.push(stats.missingMonth+' עסקאות ללא חודש תזרים; יש להריץ סנכרון 12 חודשים');if(stats.ccTotal>=20&&stats.ccIncome/stats.ccTotal>0.8)errors.push('רוב עסקאות האשראי מסווגות כהכנסה; נדרש לבדוק isIncome');if(stats.legacySeen)warnings.push(stats.legacySeen+' עסקאות עם firstSeenAt חסר או באותו יום של העסקה; זמן הקליטה ההיסטורי אינו מאומת');if(stats.noId)warnings.push(stats.noId+' עסקאות ללא transactionId; זיהוי חלופי עלול לאחד עסקאות דומות');
+  const tx=getSheet_('TRANSACTIONS');const rows=tx.getLastRow()>1?tx.getRange(2,1,tx.getLastRow()-1,21).getValues():[];const stats=auditTransactions_(rows);if(stats.duplicates)errors.push('נמצאו '+stats.duplicates+' מזהי עסקה כפולים');if(stats.invalid)errors.push('נמצאו '+stats.invalid+' עסקאות עם סכום/כיוון/תאריך לא תקינים');if(!transactionsAreChronologicallySorted_())warnings.push('גיליון תנועות אינו מסודר כרונולוגית; הסנכרון הבא יסדר אותו');if(stats.missingMonth)warnings.push(stats.missingMonth+' עסקאות ללא חודש תזרים; יש להריץ סנכרון 12 חודשים');if(stats.ccTotal>=20&&stats.ccIncome/stats.ccTotal>0.8)errors.push('רוב עסקאות האשראי מסווגות כהכנסה; נדרש לבדוק isIncome');if(stats.legacySeen)warnings.push(stats.legacySeen+' עסקאות עם firstSeenAt חסר או באותו יום של העסקה; זמן הקליטה ההיסטורי אינו מאומת');if(stats.noId)warnings.push(stats.noId+' עסקאות ללא transactionId; זיהוי חלופי עלול לאחד עסקאות דומות');
   const verify=getSheet_('VERIFICATION');const vr=verify.getLastRow()>1?verify.getRange(2,1,verify.getLastRow()-1,9).getDisplayValues():[];const active=summarizeVerification_(vr).active;if(active)warnings.push(active+' נושאי אימות פעילים בגיליון אימות נתונים');
   const snapshot=getFinancialSnapshotV510_();validateCoreKpiViewParityV510_(snapshot,errors);if(!String(getSheet_('DASHBOARD').getRange('A5').getValue()).includes('מחושבת'))warnings.push('כרטיס העו״ש אינו מסומן כמחושב');
   const reconciliation=getPlannedReconciliationV59_();if(reconciliation.review)warnings.push(reconciliation.review+' אירועי תזרים מתוכנן דורשים בדיקת התאמה ידנית');if(reconciliation.formulaDisagreements)warnings.push(reconciliation.formulaDisagreements+' פערים בין מנוע התאמות Core לנוסחאות K–M בשלב ה-Cutover');
@@ -235,6 +239,9 @@ function setupBudgetHeaders_(){const sh=getSheet_('BUDGET');ensureGridSize_(sh,1
 function setupSyncLogHeaders_(){const sh=getSheet_('SYNC_LOG');const current=sh.getRange(1,1,1,Math.max(sh.getLastColumn(),1)).getValues()[0];const out=current.filter(function(h,i){return h!==''||i<current.length-1;});V56.LOG_HEADERS.forEach(function(h){if(out.indexOf(h)===-1)out.push(h);});ensureGridSize_(sh,1,out.length);sh.getRange(1,1,1,out.length).setValues([out]);sh.setFrozenRows(1);}
 
 function upsertTransactions_(transactions){const sh=getSheet_('TRANSACTIONS'),lr=sh.getLastRow(),width=V56.TRANSACTION_HEADERS.length;const existing=lr>1?sh.getRange(2,1,lr-1,width).getValues():[];const index=Object.create(null);existing.forEach(function(r,i){const key=transactionKeyFromRow_(r);if(key)index[key]=i;});let inserted=0,updated=0,unchanged=0,duplicates=0;const seenApi=Object.create(null),now=new Date(),output=existing.map(function(r){return r.slice();});transactions.forEach(function(tx){const row=normalizeTransaction_(tx,now),key=transactionKeyFromRow_(row);if(!key)return;if(seenApi[key]){duplicates++;return;}seenApi[key]=true;if(index[key]===undefined){row[20]=now;index[key]=output.length;output.push(row);inserted++;return;}const i=index[key],old=output[i];row[20]=old[20]||'';if(rowsEquivalent_(old,row,19))unchanged++;else{output[i]=row;updated++;}});if(output.length&&(inserted||updated)){ensureGridSize_(sh,output.length+1,width);sh.getRange(2,1,output.length,width).setValues(output);}return{inserted:inserted,updated:updated,unchanged:unchanged,duplicates:duplicates};}
+
+function sortTransactionsChronologically_(){const sh=getSheet_('TRANSACTIONS'),lr=sh.getLastRow();if(lr<3)return;const width=Math.max(sh.getLastColumn(),22);ensureGridSize_(sh,lr,width);sh.getRange(2,1,lr-1,width).sort([{column:2,ascending:false},{column:21,ascending:false},{column:1,ascending:true}]);}
+function transactionsAreChronologicallySorted_(){const sh=getSheet_('TRANSACTIONS'),lr=sh.getLastRow();if(lr<3)return true;const dates=sh.getRange(2,2,lr-1,1).getValues();let previous=Infinity;for(let i=0;i<dates.length;i++){const d=dates[i][0];if(!isValidDate_(d))continue;const t=d.getTime();if(t>previous)return false;previous=t;}return true;}
 
 function normalizeTransaction_(tx,now){if(!tx||typeof tx!=='object'||Array.isArray(tx))throw new Error('עסקה אינה אובייקט תקין');const rawAmount=tx.amount??tx.transactionAmount,numericAmount=numberOrNaN_(rawAmount);if(!isFinite(numericAmount))throw new Error('סכום עסקה חסר או אינו מספר תקין');const amount=Math.abs(numericAmount),month=tx.cashflowDate||tx.cashflowMonth||tx.transactionBudgetDate||'';if(month&&!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw new Error('חודש תזרים אינו תקין');let direction='';if(typeof tx.isIncome==='boolean')direction=tx.isIncome?'הכנסה':'הוצאה';else{direction=tx.direction||'';if(direction==='expense')direction='הוצאה';if(direction==='income')direction='הכנסה';if(direction!=='הכנסה'&&direction!=='הוצאה')throw new Error('כיוון עסקה חסר או לא מוכר; נדרש isIncome או direction תקין');}const date=parseTransactionDate_(tx.transactionDate||tx.date||tx.actualDate);if(!isValidDate_(date))throw new Error('תאריך עסקה חסר או אינו תקין');const billingRaw=tx.billingDate||tx.chargeDate,billing=parseTransactionDate_(billingRaw);if(billingRaw&&!isValidDate_(billing))throw new Error('תאריך חיוב אינו תקין');return[tx.transactionId||tx.id||'',date,month,tx.businessName||tx.description||'',tx.categoryLabel||tx.category||'',amount,direction,tx.sourceType||tx.accountType||'',tx.source||'',tx.accountNickname||tx.accountName||'',tx.accountNumberHash||'',billing,!!tx.isInstallment,tx.installmentNumber||'',tx.totalNumberOfInstallments??tx.totalNumberOfPayments??tx.totalInstallments??'',!!tx.isPostponed,tx.commitmentId||'',tx.actualType||'',tx.categoryType||'',now,''];}
 function transactionFingerprintFromRow_(r){if(!r||!r.slice(0,19).some(function(v){return v!==''&&v!==null&&v!==undefined;}))return'';function day(v){return isValidDate_(v)?Utilities.formatDate(v,V56.TIMEZONE,'yyyy-MM-dd'):String(v||'');}return JSON.stringify([day(r[1]),r[3]||'',r[5]??'',r[6]||'',r[7]||'',r[8]||'',r[10]||'',day(r[11]),r[13]??'',r[14]??'']);}
