@@ -5,7 +5,7 @@
   "promotionTarget": "core-1.3.0",
   "approvedCore": "core-1.2.0",
   "experimentOpenedFromMainSha": "d08f1c045d7ea30114c2f155a13168b85cb516b3",
-  "latestApprovedMainSha": "d08f1c045d7ea30114c2f155a13168b85cb516b3",
+  "latestApprovedMainSha": "560f06eaeee6a4c827ca96f5bee0be2e1f821236",
   "components": {
     "appsScriptCore": "dev-1.3.0",
     "dashboard": "dev-1.3.0",
