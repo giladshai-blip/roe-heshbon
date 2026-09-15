@@ -13,9 +13,9 @@ The repository has one human-facing release version for the entire active system
 
 ## Current baseline
 
-- approved `main`: `core-1.4.0`
-- latest promoted capability: DEV engineering ownership + corrected Dashboard release identity + Core source reconciliation to Legacy Build `V5.10.1`.
-- the next `dev` release must use a version greater than `1.4.0` and list `core-1.4.0` as its approved base.
+- approved `main`: `core-1.5.0`
+- latest promoted capability: mandatory GitHub code-link handoff from DEV and canonical GitHub verification by Gabi before claiming technical state is unknown.
+- the next `dev` release must use a version greater than `1.5.0` and list `core-1.5.0` as its approved base.
 
 ## Version resolution — mandatory checks
 
@@ -33,7 +33,7 @@ Never infer the next version from conversation memory alone.
 - `MINOR` — new compatible capability, agent, contract, workflow or user-visible behavior.
 - `MAJOR` — breaking compatibility or a non-compatible architectural contract change.
 
-Promotion preserves `MAJOR.MINOR.PATCH`: for example `dev-1.4.0` → `core-1.4.0`.
+Promotion preserves `MAJOR.MINOR.PATCH`: for example `dev-1.5.0` → `core-1.5.0`.
 
 ## Components
 
@@ -44,7 +44,7 @@ This release number describes the integrated branch state. It does **not** repla
 ## Dashboard numbering
 
 Dashboard has two distinct identifiers:
-- **Release version**: the system release, e.g. `dev-1.4.0` or `core-1.4.0`.
+- **Release version**: the system release, e.g. `dev-1.5.0` or `core-1.5.0`.
 - **Legacy Build ID**: compatibility identifier such as `V5.10.0` used by existing function names/history.
 
 The Dashboard MUST display/store the release version as `גרסת דשבורד`. A Legacy Build ID may be stored separately but MUST NOT be presented as the current release version.
@@ -53,7 +53,7 @@ The Dashboard MUST display/store the release version as `גרסת דשבורד`.
 
 Old identifiers such as `V5.x`, `0.7.x` and `1.0.x` are Legacy Build IDs only. They may remain inside compatibility code, triggers, historical specifications, archived version folders and regression history when renaming them would damage traceability or compatibility. They MUST NOT be presented as the current release version.
 
-Example: Apps Script may still carry Legacy Build ID `V5.10.1`, while the active repository release is `core-1.4.0`.
+Example: Apps Script may still carry Legacy Build ID `V5.10.1`, while the active repository release is `core-1.5.0`.
 
 ## Files and tests
 
@@ -68,8 +68,12 @@ A DEV release may be promoted only when:
 - `release.json` and docs agree;
 - user explicitly approves promotion.
 
+## GitHub handoff requirement
+
+For code/script/release work, DEV must surface direct GitHub links to the canonical changed source and, when applicable, the PR and commit. Gabi must consult those canonical references before claiming the technical state is unavailable or unknown.
+
 ## Restore
 
 The command `שחזר` restores the active dev experiment component(s) from the latest approved `main` release, not from a previous dev revision unless explicitly requested.
 
-Current restore base: `core-1.4.0`.
+Current restore base: `core-1.5.0`.
