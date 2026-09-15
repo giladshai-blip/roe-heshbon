@@ -24,6 +24,7 @@ const V56 = {
   SYNC_INTERVAL_HOURS: 3,
   SYNC_STALE_HOURS: 4,
   LARGE_TRANSACTION_ALERT: 2000,
+  LOW_MARGIN_ALERT_ILS: 500,
   MAX_RETRIES: 4,
   INITIAL_RETRY_MS: 1000,
   RECONCILIATION_WINDOW_DAYS: 3,
@@ -210,7 +211,9 @@ function healthCheckV56_(){
   const errorCells=findFormulaErrors_();if(errorCells.length)errors.push('שגיאות נוסחה ('+errorCells.length+'): '+errorCells.slice(0,12).join(', '));
   const sync=getConfigParam_('תאריך רענון אחרון');if(!isValidDate_(sync)||sync.getTime()>Date.now())warnings.push('מועד סנכרון אחרון חסר או לא תקין');else if(Date.now()-sync.getTime()>V56.SYNC_STALE_HOURS*3600000)warnings.push('הסנכרון האחרון ישן מ-'+V56.SYNC_STALE_HOURS+' שעות');if(getConfigParam_('גרסת מערכת')!==V56.VERSION)warnings.push('גרסת Core המותקנת בהגדרות אינה '+V56.VERSION);if(getConfigParam_('גרסת דשבורד')!==V56.DASHBOARD_VERSION)warnings.push('גרסת הדשבורד דורשת התקנה: '+V56.DASHBOARD_VERSION);
   const triggerCount=getRiseupSyncTriggerCount_();if(triggerCount===0)warnings.push('טריגר סנכרון RiseUp אוטומטי אינו מותקן');else if(triggerCount>1)errors.push('נמצאו '+triggerCount+' טריגרי RiseUp כפולים; יש להריץ installRiseupSyncTriggerV5');
-  warnings.push('יתרת העו״ש היא אומדן. עסקאות ביום העוגן, תיקונים ועסקאות שנמחקו ב-RiseUp דורשים התאמה לבנק.');return healthResult_(errors,warnings,autoBalance);
+  warnings.push('יתרת העו״ש היא אומדן. עסקאות ביום העוגן, תיקונים ועסקאות שנמחקו ב-RiseUp דורשים התאמה לבנק.');
+  try{refreshCashflowAlertsV59_();}catch(e){warnings.push('רענון התראת מרווח מסגרת ('+V56.SHEET_NAMES.ALERTS+') נכשל: '+String(e.message||e));}
+  return healthResult_(errors,warnings,autoBalance);
 }
 
 function checkDuplicatesV5(){const sh=getSheet_('TRANSACTIONS');const lr=sh.getLastRow();if(lr<2)return{duplicates:0,items:[]};const vals=sh.getRange(2,1,lr-1,21).getValues();const seen=Object.create(null),dup=[];vals.forEach(function(r,i){const key=transactionKeyFromRow_(r);if(!key)return;if(seen[key]!==undefined)dup.push({key:key,rows:[seen[key]+2,i+2]});else seen[key]=i;});SpreadsheetApp.getUi().alert('בדיקת כפילויות',dup.length?'נמצאו '+dup.length+' כפילויות.':'לא נמצאו כפילויות.',SpreadsheetApp.getUi().ButtonSet.OK);return{duplicates:dup.length,items:dup};}
@@ -304,6 +307,46 @@ function endOfCashflow_(rows){if(!rows.length||!isValidDate_(rows[0][0]))return{
 function forecastWindow_(cashRows,annualRows,now){const map=Object.create(null);annualRows.forEach(function(r){if(isValidDate_(r[0])&&isFinite(numberOrNaN_(r[8])))map[dayKey_(r[0])]=Number(r[8]);});cashRows.forEach(function(r){if(isValidDate_(r[0])&&isFinite(numberOrNaN_(r[6])))map[dayKey_(r[0])]=Number(r[6]);});const values=[];let minimum=Infinity,minimumDate='';for(let i=0;i<30;i++){const key=addDaysKey_(dayKey_(now),i);if(map[key]!==undefined){const value=map[key];values.push(value);if(value<minimum){minimum=value;minimumDate=key;}}}return{covered:values.length,minimum:values.length===30?minimum:NaN,minimumDate:values.length===30?minimumDate:'',values:values};}
 function getForecast30DayMetrics_(){const cash=getSheet_('CASHFLOW');const annual=getSheet_('ANNUAL_CASHFLOW');const cashRows=cash.getRange(2,1,Math.max(1,cash.getLastRow()-1),7).getValues();const annualRows=annual.getRange(16,1,Math.max(1,annual.getLastRow()-15),9).getValues();return forecastWindow_(cashRows,annualRows,new Date());}
 function getFinancialSnapshotV58_(){const cash=getSheet_('CASHFLOW'),annual=getSheet_('ANNUAL_CASHFLOW');const cashRows=cash.getRange(2,1,Math.max(1,cash.getLastRow()-1),7).getValues(),annualRows=annual.getRange(16,1,Math.max(1,annual.getLastRow()-15),9).getValues();const forecast=forecastWindow_(cashRows,annualRows,new Date()),end=endOfCashflow_(cashRows),currentBalance=numberOrNaN_(getConfigParam_('יתרת עו״ש מחושבת אוטומטית')),checkingFrame=numberOrNaN_(getConfigParam_('מסגרת עו״ש מאומתת'));let breachDate='',breachAmount=NaN;if(isFinite(checkingFrame)&&checkingFrame>0&&forecast.covered===30){for(let i=0;i<forecast.values.length;i++){const value=forecast.values[i];const date=addDaysKey_(dayKey_(new Date()),i);if(value<-checkingFrame){breachDate=date;breachAmount=value;break;}}}return{version:V56.VERSION,calculatedAt:new Date(),currentBalance:currentBalance,monthEnd:end.value,monthEndDate:end.day,low30:forecast.minimum,low30Date:forecast.minimumDate,coveredDays:forecast.covered,checkingFrame:checkingFrame,remainingFrameAtLow:isFinite(checkingFrame)&&checkingFrame>0&&isFinite(forecast.minimum)?checkingFrame+forecast.minimum:NaN,breachDate:breachDate,breachAmount:breachAmount,lastSync:getConfigParam_('תאריך רענון אחרון'),bankVerifiedAt:getConfigParam_('תאריך ושעת יתרת עו״ש')};}
+function upsertSystemAlertV59_(key,severity,category,title,detail,value,relevantDate,isOpen){
+  const sh=getSheet_('ALERTS');
+  const headerNames=['זמן יצירה','מפתח','חומרה','קטגוריה','כותרת','פירוט','ערך','תאריך רלוונטי','סטטוס','נראה לאחרונה'];
+  const headers=sh.getRange(1,1,1,Math.max(headerNames.length,sh.getLastColumn())).getDisplayValues()[0];
+  const col={};
+  headerNames.forEach(function(h){const idx=headers.indexOf(h)+1;if(!idx)throw new Error('חסרה עמודה בגיליון '+V56.SHEET_NAMES.ALERTS+': '+h);col[h]=idx;});
+  const lr=sh.getLastRow(),now=new Date(),statusText=isOpen?'פתוח':'נפתר';
+  let targetRow=0;
+  if(lr>1){
+    const keys=sh.getRange(2,col['מפתח'],lr-1,1).getValues();
+    for(let i=0;i<keys.length;i++){if(String(keys[i][0]||'').trim()===key){targetRow=i+2;break;}}
+  }
+  if(!targetRow){
+    targetRow=Math.max(lr+1,2);
+    ensureGridSize_(sh,targetRow,headerNames.length);
+    sh.getRange(targetRow,col['זמן יצירה']).setValue(now);
+    sh.getRange(targetRow,col['מפתח']).setValue(key);
+  }
+  sh.getRange(targetRow,col['חומרה']).setValue(severity);
+  sh.getRange(targetRow,col['קטגוריה']).setValue(category);
+  sh.getRange(targetRow,col['כותרת']).setValue(title);
+  sh.getRange(targetRow,col['פירוט']).setValue(detail);
+  sh.getRange(targetRow,col['ערך']).setValue(value);
+  sh.getRange(targetRow,col['תאריך רלוונטי']).setValue(relevantDate);
+  sh.getRange(targetRow,col['סטטוס']).setValue(statusText);
+  sh.getRange(targetRow,col['נראה לאחרונה']).setValue(now);
+  return {row:targetRow,status:statusText};
+}
+
+function refreshCashflowAlertsV59_(snapshot){
+  const s=snapshot||getFinancialSnapshotV58_();
+  const hasFrame=isFinite(s.checkingFrame)&&s.checkingFrame>0&&isFinite(s.remainingFrameAtLow);
+  const isOpen=hasFrame&&s.remainingFrameAtLow<V56.LOW_MARGIN_ALERT_ILS;
+  const severity=hasFrame&&s.remainingFrameAtLow<0?'🔴':'🟡';
+  const detail=hasFrame
+    ?('השפל החזוי הוא '+formatMoney_(s.low30)+' ב-'+s.low30Date+', ונשאר מרווח של '+formatMoney_(s.remainingFrameAtLow)+' בלבד.')
+    :'לא ניתן לחשב מרווח מסגרת — נדרשת מסגרת עו״ש מאומתת וכיסוי תחזית 30 יום מלא.';
+  return upsertSystemAlertV59_('cashflow_low_margin',severity,'תזרים','מרווח מסגרת עו״ש נמוך מאוד',detail,hasFrame?s.remainingFrameAtLow:'',s.low30Date||'',isOpen);
+}
+
 function runPlannedReconciliationV59(){const r=getPlannedReconciliationV59_();const text='זכאים לבדיקה: '+r.eligible+'\nהתאמות בטוחות: '+r.matched+'\nלבדיקה ידנית: '+r.review+'\nללא התאמה: '+r.unmatched+'\nפערים מול נוסחאות K–M: '+r.formulaDisagreements;SpreadsheetApp.getUi().alert('התאמת תזרים מתוכנן — Core '+V56.VERSION,text,SpreadsheetApp.getUi().ButtonSet.OK);return r;}
 function getPlannedReconciliationV59_(){const planned=getSheet_('PLANNED_CASHFLOW'),txSheet=getSheet_('TRANSACTIONS'),plannedValues=planned.getDataRange().getValues(),txValues=txSheet.getDataRange().getValues();if(plannedValues.length<2||txValues.length<2)return{version:V56.VERSION,eligible:0,matched:0,review:0,unmatched:0,formulaDisagreements:0,rows:[]};const headers=headerMapV59_(txValues[0]);['transactionDate','businessName','amount','direction','sourceType'].forEach(function(h){if(headers[h]==null)throw new Error('חסרה עמודה בתנועות: '+h);});const txs=[];for(let i=1;i<txValues.length;i++){const row=txValues[i];if(String(row[headers.sourceType]||'').trim()!=='checkingAccount')continue;const date=plannedReconciliationDateV59_(row[headers.transactionDate]),amount=numberOrNaN_(row[headers.amount]);if(!date||!isFinite(amount))continue;txs.push({row:i+1,date:date,amount:Math.abs(amount),direction:String(row[headers.direction]||'').trim(),business:String(row[headers.businessName]||'').trim()});}let eligible=0,matched=0,review=0,unmatched=0,formulaDisagreements=0;const rows=[];for(let r=1;r<plannedValues.length;r++){const row=plannedValues[r],date=plannedReconciliationDateV59_(row[0]),type=String(row[1]||'').trim(),description=String(row[2]||'').trim(),amount=Math.abs(numberOrNaN_(row[3])),frequency=String(row[5]||'').trim(),paymentMethod=String(row[6]||'').trim(),included=row[8]===true,status=String(row[11]||'').trim(),formulaMatchCount=numberOrNaN_(row[10]);if(!date||!isFinite(amount)||amount<=0||!included||frequency==='חודשי'||type==='העברה פנימית'||/מזומן/.test(paymentMethod)||plannedReconciliationFinalStatusV59_(status)||['הוצאה','הכנסה','זיכוי'].indexOf(type)===-1)continue;eligible++;const expectedDirection=type==='הוצאה'?'הוצאה':'הכנסה',candidates=txs.filter(function(tx){return tx.direction===expectedDirection&&Math.abs(tx.amount-amount)<=V56.RECONCILIATION_AMOUNT_TOLERANCE&&Math.abs(plannedReconciliationDaysV59_(date,tx.date))<=V56.RECONCILIATION_WINDOW_DAYS;});const scored=candidates.map(function(tx){const exactDate=plannedReconciliationDaysV59_(date,tx.date)===0?2:0;return{tx:tx,score:exactDate+plannedReconciliationTextScoreV59_(description,tx.business)};}).sort(function(a,b){return b.score-a.score;});const best=scored[0],uniqueBest=!!best&&(scored.length===1||best.score>scored[1].score),highConfidence=!!best&&uniqueBest&&(best.score>=2||(candidates.length===1&&plannedReconciliationDaysV59_(date,best.tx.date)===0));if(highConfidence)matched++;else if(candidates.length)review++;else unmatched++;const formulaCount=isFinite(formulaMatchCount)?formulaMatchCount:0;if(formulaCount!==candidates.length)formulaDisagreements++;rows.push({row:r+1,date:dayKey_(date),type:type,description:description,amount:amount,status:status,candidates:candidates.length,highConfidence:highConfidence,formulaMatchCount:formulaCount,best:best?{row:best.tx.row,date:dayKey_(best.tx.date),amount:best.tx.amount,business:best.tx.business,score:best.score}:null});}return{version:V56.VERSION,eligible:eligible,matched:matched,review:review,unmatched:unmatched,formulaDisagreements:formulaDisagreements,rows:rows};}
 function plannedReconciliationFinalStatusV59_(status){const s=String(status||'').trim();return /^(?:✅\s*)?(?:בוצע\s*—\s*מאומת אוטומטית|בוצע ידנית|מאומת ידנית|נסגר|בוטל)$/.test(s);}
