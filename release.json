@@ -1,19 +1,22 @@
 {
   "schema": 1,
-  "channel": "core",
-  "version": "core-1.5.0",
-  "approved": true,
+  "channel": "dev",
+  "version": "dev-1.7.0",
+  "approved": false,
+  "promotionTarget": "core-1.7.0",
+  "approvedCore": "core-1.5.0",
+  "note": "core-1.6.0 is already occupied by the in-flight readable Dashboard release branch; this DEV line is reserved for canonical DEV engineering skills.",
   "components": {
-    "appsScriptCore": "core-1.5.0",
-    "dashboard": "core-1.5.0",
-    "familyCfoAgent": "core-1.5.0",
-    "devEngineeringAgent": "core-1.5.0",
-    "cashflowLiquidityAgent": "core-1.5.0",
-    "financialPlanningAgent": "core-1.5.0",
-    "householdControllerAgent": "core-1.5.0",
-    "incomeTaxAgent": "core-1.5.0",
-    "protectionRetirementAgent": "core-1.5.0",
-    "conversationRouter": "core-1.5.0"
+    "appsScriptCore": "dev-1.7.0",
+    "dashboard": "dev-1.7.0",
+    "familyCfoAgent": "dev-1.7.0",
+    "devEngineeringAgent": "dev-1.7.0",
+    "cashflowLiquidityAgent": "dev-1.7.0",
+    "financialPlanningAgent": "dev-1.7.0",
+    "householdControllerAgent": "dev-1.7.0",
+    "incomeTaxAgent": "dev-1.7.0",
+    "protectionRetirementAgent": "dev-1.7.0",
+    "conversationRouter": "dev-1.7.0"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
@@ -48,9 +51,21 @@
     "proactiveBugHuntPerTask": true,
     "continuousBackgroundMonitoring": false,
     "gitHubLinksRequiredForCodeHandoff": true,
-    "gabiMustCheckCanonicalGitHubBeforeUnknownClaim": true
+    "gabiMustCheckCanonicalGitHubBeforeUnknownClaim": true,
+    "skillLoading": "lazy",
+    "skillManifest": "agents/dev-engineering-agent/skills/manifest.json",
+    "activeSkills": [
+      "system-architecture",
+      "root-cause-debugging",
+      "google-apps-script",
+      "financial-data-integrity",
+      "github-release-engineering",
+      "regression-testing",
+      "observability-health-checks"
+    ]
   },
   "restore": {
-    "role": "latest approved source for dev restore"
+    "source": "core-1.5.0",
+    "scope": "active experiment components only"
   }
 }
