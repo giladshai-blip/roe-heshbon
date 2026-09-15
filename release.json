@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "channel": "core",
+  "version": "core-1.0.0",
+  "approved": true,
+  "components": {
+    "appsScriptCore": "core-1.0.0",
+    "dashboard": "core-1.0.0",
+    "familyCfoAgent": "core-1.0.0"
+  },
+  "legacyBuildIds": {
+    "appsScriptCore": "V5.9.0",
+    "dashboard": "V5.8.0",
+    "familyCfoAgent": "0.7.2"
+  },
+  "restore": {
+    "role": "latest approved source for dev restore"
+  }
+}
