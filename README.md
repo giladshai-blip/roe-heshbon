@@ -8,7 +8,7 @@
 **גרסה מאושרת ב־main: `core-1.0.0`**  
 יעד הקידום של הפיתוח הנוכחי: **`core-1.1.0`**.
 
-החל ממספור זה קיימת **גרסה אחת למערכת כולה**. Core, Dashboard, גבי ו־Wix אינם מקבלים עוד מספרי Release נפרדים. מזהים ישנים כמו `V5.10.1`, `V5.9.0`, `0.7.3-dev` ו־`1.0.3` נשמרים רק כ־Legacy Build IDs לצורכי תאימות והיסטוריה.
+החל ממספור זה קיימת **גרסה אחת למערכת כולה**. Core, Dashboard, גבי, תתי־הסוכנים ו־Wix אינם מקבלים עוד מספרי Release נפרדים. המזהים הישנים נשמרים רק כ־Legacy Build IDs לצורכי תאימות והיסטוריה.
 
 מקור האמת למספור ב־dev הוא `release.json`.
 
@@ -40,11 +40,15 @@
 - `refreshForecasts` — רענן תחזיות.
 - `checkSystemHealth` — בדוק תקינות מערכת.
 - `runSystemDiagnostics` — הרץ אבחון מלא.
+- `checkDuplicateTransactions` — בדוק כפילויות.
+- `reviewDataVerification` — בדוק אימות נתונים.
 - `showSystemStatus` — הצג מצב מערכת.
 - `openDashboard` — פתח דשבורד.
 - `enableAutomaticSync` / `disableAutomaticSync` — הפעל/בטל סנכרון אוטומטי.
 - `reconcilePlannedCashflow` — התאם תזרים מתוכנן לביצוע.
 - `buildDashboard` / `refreshDashboard` / `resetDashboard` — פעולות דשבורד.
+- `updateRiseUpToken` / `clearRiseUpToken` — נהל חיבור RiseUp דרך חלון פשוט.
+- `updateWixApiKey` / `clearWixApiKey` — נהל חיבור Wix דרך חלון פשוט.
 - `syncWixNow` — סנכרן Wix.
 - `showReleaseInfo` — הצג את גרסת ה־Release הנוכחית.
 
@@ -56,7 +60,7 @@
 - פיתוח מתבצע ב־`dev`.
 - לפני רפקטור משמעותי נשמר branch גיבוי.
 - לפני קידום ל־`main` נדרשות בדיקות רגרסיה ובדיקת Runtime חיה.
-- גיבוי לפני רפקטור המספור הנוכחי: `backup/dev-pre-release-train-20260915`.
+- גיבויים: `backup/main-pre-core-1.0.0-20260915` ו־`backup/dev-pre-release-train-20260915`.
 
 ## אבטחה
 
