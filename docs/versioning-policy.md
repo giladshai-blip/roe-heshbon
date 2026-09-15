@@ -7,18 +7,18 @@ The repository has one human-facing release version for the entire active system
 - Active approved releases on `main` MUST use prefix `core-`.
 - Active development releases on `dev` MUST use prefix `dev-`.
 - Format: `<channel>-MAJOR.MINOR.PATCH`.
-- Promotion keeps MAJOR.MINOR.PATCH and changes the prefix only: `dev-1.1.0` -> `core-1.1.0`.
 - `release.json` on each branch is the machine-readable source of truth for the active release.
 
 ## Current baseline
 
-- `main`: `core-1.0.0`
-- active `dev`: `dev-1.1.0`
-- next promotion target: `core-1.1.0`
+- approved `main`: `core-1.2.0`
+- active `dev`: `dev-1.3.0`
+- next promotion target: `core-1.3.0`
+- approved router: Gabi / DEV / CORE from `core-1.2.0`
 
 ## Components
 
-All active components share the branch release number, including Apps Script Core, Dashboard, Gabi, sub-agents, and any active bridge/application component included in that branch.
+All active components share the branch release number, including Apps Script Core, Dashboard, Gabi, sub-agents, router and any active bridge/application component included in that branch.
 
 ## Legacy identifiers
 
@@ -31,3 +31,5 @@ New active versioned docs/tests must start with the branch release prefix (`core
 ## Restore
 
 The command `שחזר` restores the active dev experiment component(s) from the latest approved `main` release, not from a previous dev revision unless explicitly requested.
+
+Current restore base: `core-1.2.0`.
