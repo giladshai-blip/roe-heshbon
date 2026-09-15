@@ -53,10 +53,27 @@ function reviewDataVerification() {
 }
 
 function showSystemStatus() {
-  const legacy = showSystemStatusV5();
-  const text = 'Release: ' + USER_RELEASE.VERSION + '\nChannel: ' + USER_RELEASE.CHANNEL + '\nPromotion target: ' + USER_RELEASE.PROMOTION_TARGET + '\n\n' + legacy;
+  const health = healthCheckV56_();
+  const sync = getConfigParam_('תאריך רענון אחרון');
+  const anchor = getConfigParam_('תאריך ושעת יתרת עו״ש');
+  const legacyCore = (typeof V56 !== 'undefined' && V56.VERSION) ? V56.VERSION : 'לא זמין';
+  const legacyDashboard = (typeof DASHBOARD_V56 !== 'undefined' && DASHBOARD_V56.VERSION) ? DASHBOARD_V56.VERSION : 'לא זמין';
+  const text = [
+    'גרסה פעילה: ' + USER_RELEASE.VERSION,
+    'גרסה מאושרת: ' + USER_RELEASE.APPROVED_CORE,
+    'יעד קידום: ' + USER_RELEASE.PROMOTION_TARGET,
+    '',
+    'סנכרון אחרון: ' + formatDateTime_(sync),
+    'אימות עו״ש: ' + formatDateTime_(anchor),
+    '',
+    health.summary,
+    '',
+    'Legacy Build IDs — תאימות בלבד:',
+    'Core: ' + legacyCore,
+    'Dashboard: ' + legacyDashboard
+  ].join('\n');
   SpreadsheetApp.getUi().alert('מצב מערכת — ' + USER_RELEASE.VERSION, text, SpreadsheetApp.getUi().ButtonSet.OK);
-  return text;
+  return { version: USER_RELEASE.VERSION, health: health, text: text };
 }
 
 function openDashboard() {
@@ -91,8 +108,38 @@ function resetDashboard() {
   return clearDashboardV56();
 }
 
-function saveWixApiKey(apiKey) {
-  return setWixApiKeyV1(apiKey);
+function updateRiseUpToken() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.prompt(
+    'עדכון חיבור RiseUp',
+    'הדבק את ה־PAT של RiseUp. המפתח נשמר רק ב־Script Properties ולא ב־GitHub.',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (response.getSelectedButton() !== ui.Button.OK) return { ok: false, cancelled: true };
+  const token = String(response.getResponseText() || '').trim();
+  setRiseupPatV5(token);
+  ui.alert('חיבור RiseUp', 'המפתח נשמר בהצלחה.', ui.ButtonSet.OK);
+  return { ok: true };
+}
+
+function clearRiseUpToken() {
+  clearRiseupPatV5();
+  getSpreadsheet_().toast('מפתח RiseUp נמחק מ־Script Properties', 'רואה חשבון', 5);
+  return { ok: true };
+}
+
+function updateWixApiKey() {
+  const ui = SpreadsheetApp.getUi();
+  const response = ui.prompt(
+    'עדכון חיבור Wix',
+    'הדבק את Wix API Key. המפתח נשמר רק ב־Script Properties ולא ב־GitHub.',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (response.getSelectedButton() !== ui.Button.OK) return { ok: false, cancelled: true };
+  const key = String(response.getResponseText() || '').trim();
+  setWixApiKeyV1(key);
+  ui.alert('חיבור Wix', 'המפתח נשמר בהצלחה.', ui.ButtonSet.OK);
+  return { ok: true };
 }
 
 function clearWixApiKey() {
