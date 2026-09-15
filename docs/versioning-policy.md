@@ -7,18 +7,18 @@ The repository has one human-facing release version for the entire active system
 - Active approved releases on `main` MUST use prefix `core-`.
 - Active development releases on `dev` MUST use prefix `dev-`.
 - Format: `<channel>-MAJOR.MINOR.PATCH`.
-- Promotion keeps MAJOR.MINOR.PATCH and changes the prefix only: `dev-1.1.0` -> `core-1.1.0`.
+- Promotion keeps MAJOR.MINOR.PATCH and changes the prefix only.
 - `release.json` on each branch is the machine-readable source of truth for the active release.
 
 ## Current baseline
 
-- `main`: `core-1.0.0`
-- active `dev`: `dev-1.1.0`
-- next promotion target: `core-1.1.0`
+- `main`: `core-1.2.0`
+- latest promoted capability: three-mode conversation router — Gabi / DEV / CORE.
+- the next `dev` release must use a version greater than `1.2.0` and list `core-1.2.0` as its approved base.
 
 ## Components
 
-All active components share the branch release number, including Apps Script Core, Dashboard, Gabi, sub-agents, and any active bridge/application component included in that branch.
+All active components share the branch release number, including Apps Script Core, Dashboard, Gabi, sub-agents, router and any active bridge/application component included in that branch.
 
 ## Legacy identifiers
 
