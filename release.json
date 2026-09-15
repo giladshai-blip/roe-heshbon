@@ -35,8 +35,15 @@
     "directTriggers": {
       "היי גבי": "GABI_AGENT",
       "היי dev": "DEV_ENVIRONMENT",
+      "היי דב": "DEV_ENVIRONMENT",
       "היי core": "CORE_RUNTIME"
     }
+  },
+  "startup": {
+    "gabiGreetingMode": "fast-start",
+    "gabiGreetingDriveReads": 0,
+    "gabiGreetingRuntimeLoads": 0,
+    "lazyLoadRuntime": true
   },
   "restore": {
     "command": "שחזר",
