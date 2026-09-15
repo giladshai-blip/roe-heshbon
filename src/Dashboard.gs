@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * רואה חשבון — Dashboard | Release core-1.4.0 | Legacy Build V5.10.0
+ * רואה חשבון — Dashboard | Release core-1.6.0 | Legacy Build V5.10.0
  * ============================================================
  * מיועד ל-Core V5.10.1.
  *
@@ -16,32 +16,27 @@
  * התקנה:
  * 1) החלף את Dashboard.gs בקובץ זה.
  * 2) ודא ש-Code.gs הוא Legacy Build Core V5.10.1 או release תואם שמספק getFinancialSnapshotV510_.
- * 3) הרץ installDashboardV5100().
+ * 3) הרץ installFinancialDashboard().
  * ============================================================
  */
 
 const DASHBOARD_V56 = {
   SPREADSHEET_ID: '1a172bDSpW5L4gDXgrZDmh82NBgB2eOM2dUNiyCl1dbM',
   DASHBOARD_SHEET_NAME: 'לוח מחוונים',
-  VERSION: 'core-1.4.0',
+  VERSION: 'core-1.6.0',
   LEGACY_BUILD_ID: 'V5.10.0',
   HELPER_START_COL: 25,
   HELPER_END_COL: 26
 };
 
-function installDashboardV5100() { return installDashboardV56(); }
-function refreshDashboardV5100() { return installDashboardV56(); }
-function installDashboardV510() { return installDashboardV56(); }
-function refreshDashboardV510() { return installDashboardV56(); }
-
-function installDashboardV56() {
-  activateDashboardV510CoreVersion_();
+function installFinancialDashboard() {
+  syncDashboardReleaseIdentity_();
   const ss = SpreadsheetApp.openById(DASHBOARD_V56.SPREADSHEET_ID);
-  const sheet = getDashboardV56Sheet_();
+  const sheet = getFinancialDashboardSheet_();
 
-  ensureDashboardV56Grid_(sheet);
+  ensureFinancialDashboardGrid_(sheet);
   sheet.getCharts().forEach(function(chart){ sheet.removeChart(chart); });
-  unmergeDashboardV56_(sheet);
+  unmergeFinancialDashboard_(sheet);
   sheet.clear();
   sheet.clearConditionalFormatRules();
   sheet.setHiddenGridlines(true);
@@ -56,12 +51,12 @@ function installDashboardV56() {
     );
   } catch (e) {}
 
-  configureDashboardV56Grid_(sheet);
-  ensureDashboardRiskConfigV510_();
-  buildDashboardV56HelperData_(sheet);
-  buildDashboardV56Layout_(sheet);
-  guardDashboardV561_(sheet);
-  applyDashboardV56ConditionalFormatting_(sheet);
+  configureFinancialDashboardGrid_(sheet);
+  ensureDashboardRiskSettings_();
+  buildDashboardHelperData_(sheet);
+  buildFinancialDashboardLayout_(sheet);
+  guardFinancialDashboardData_(sheet);
+  applyDashboardConditionalFormatting_(sheet);
 
   sheet.hideColumns(
     DASHBOARD_V56.HELPER_START_COL,
@@ -86,13 +81,13 @@ function installDashboardV56() {
   };
 }
 
-function refreshDashboardV56() { return installDashboardV56(); }
+function refreshFinancialDashboard() { return installFinancialDashboard(); }
 
-function clearDashboardV56() {
+function clearFinancialDashboard() {
   const ss = SpreadsheetApp.openById(DASHBOARD_V56.SPREADSHEET_ID);
-  const sheet = getDashboardV56Sheet_();
+  const sheet = getFinancialDashboardSheet_();
   sheet.getCharts().forEach(function(chart){ sheet.removeChart(chart); });
-  unmergeDashboardV56_(sheet);
+  unmergeFinancialDashboard_(sheet);
   sheet.clear();
   sheet.clearConditionalFormatRules();
   sheet.setHiddenGridlines(true);
@@ -100,20 +95,13 @@ function clearDashboardV56() {
   ss.toast('לוח המחוונים נוקה', 'רואה חשבון', 5);
 }
 
-function installDashboardV55() { return installDashboardV56(); }
-function refreshDashboardV55() { return refreshDashboardV56(); }
-function clearDashboardV55() { return clearDashboardV56(); }
-function installCleanDashboardV54() { return installDashboardV56(); }
-function refreshCleanDashboardV54() { return refreshDashboardV56(); }
-function clearCleanDashboardV54() { return clearDashboardV56(); }
-
-function activateDashboardV510CoreVersion_() {
+function syncDashboardReleaseIdentity_() {
   try {
     if (typeof V56 !== 'undefined' && V56) V56.DASHBOARD_VERSION = DASHBOARD_V56.VERSION;
   } catch (e) {}
 }
 
-function ensureDashboardRiskConfigV510_() {
+function ensureDashboardRiskSettings_() {
   if (typeof getConfigParam_ !== 'function' || typeof setConfigParam_ !== 'function') {
     throw new Error('Core V5.10.1 חסר: פונקציות הגדרות אינן זמינות.');
   }
@@ -131,7 +119,7 @@ function ensureDashboardRiskConfigV510_() {
   });
 }
 
-function buildDashboardV56HelperData_(sheet) {
+function buildDashboardHelperData_(sheet) {
   const helper = [
     ['מדד','ערך'],
     ['יתרת עו״ש מחושבת',''],
@@ -170,7 +158,7 @@ function buildDashboardV56HelperData_(sheet) {
   if (snapshot.coveredDays !== 30) {
     throw new Error('תחזית 30 יום אינה מלאה: ' + snapshot.coveredDays + '/30.');
   }
-  writeDashboardCoreKpisV510_(sheet, snapshot);
+  writeDashboardCoreMetrics_(sheet, snapshot);
 
   sheet.getRange('Z17').setFormula(`=IFERROR(INDEX(FILTER('התראות מערכת'!E2:E,'התראות מערכת'!I2:I="פתוח"),1),"אין התראות פתוחות")`);
   sheet.getRange('Z18').setFormula(`=IFERROR(INDEX(FILTER('התראות מערכת'!F2:F,'התראות מערכת'!I2:I="פתוח"),1),"")`);
@@ -187,10 +175,10 @@ function buildDashboardV56HelperData_(sheet) {
   sheet.getRange('Z20').setFormula(`=LET(d,${dates},b,${balances},m,MIN(FILTER(b,d>=TODAY(),d<TODAY()+30,ISNUMBER(b))),TEXTJOIN(", ",TRUE,TEXT(FILTER(d,d>=TODAY(),d<TODAY()+30,ROUND(b,2)=ROUND(m,2)),"dd/MM/yyyy")))`);
   sheet.getRange('Z21').setFormula(`=LET(d,${dates},b,${balances},m,MIN(FILTER(b,d>=TODAY(),d<TODAY()+30,ISNUMBER(b))),z,FILTER(d,d>=TODAY(),d<TODAY()+30,b<=m+${lowZoneThreshold}),IF(ROWS(z)=1,TEXT(INDEX(z,1),"dd/MM/yyyy"),TEXT(MIN(z),"dd/MM")&"–"&TEXT(MAX(z),"dd/MM/yyyy")))`);
   sheet.getRange('Z22').setFormula(`=LET(d,${dates},b,${balances},m,MIN(FILTER(b,d>=TODAY(),d<TODAY()+30,ISNUMBER(b))),ROWS(FILTER(d,d>=TODAY(),d<TODAY()+30,b<=m+${lowZoneThreshold})))`);
-  sheet.getRange('Z23').setFormula(interestFormulaV510_(dates, balances, frame, rateLow, rateOver, false, lowZoneThreshold));
-  sheet.getRange('Z24').setFormula(interestFormulaV510_(dates, balances, frame, rateHigh, rateOver, false, lowZoneThreshold));
-  sheet.getRange('Z25').setFormula(interestFormulaV510_(dates, balances, frame, rateLow, rateOver, true, lowZoneThreshold));
-  sheet.getRange('Z26').setFormula(interestFormulaV510_(dates, balances, frame, rateHigh, rateOver, true, lowZoneThreshold));
+  sheet.getRange('Z23').setFormula(buildOverdraftInterestFormula_(dates, balances, frame, rateLow, rateOver, false, lowZoneThreshold));
+  sheet.getRange('Z24').setFormula(buildOverdraftInterestFormula_(dates, balances, frame, rateHigh, rateOver, false, lowZoneThreshold));
+  sheet.getRange('Z25').setFormula(buildOverdraftInterestFormula_(dates, balances, frame, rateLow, rateOver, true, lowZoneThreshold));
+  sheet.getRange('Z26').setFormula(buildOverdraftInterestFormula_(dates, balances, frame, rateHigh, rateOver, true, lowZoneThreshold));
   sheet.getRange('Z27').setFormula(`=LET(d,${dates},b,${balances},COUNTIF(FILTER(b,d>=TODAY(),d<TODAY()+30,ISNUMBER(b)),"<0"))`);
 
   sheet.getRange('Z2:Z4').setNumberFormat('#,##0.00 ₪');
@@ -205,14 +193,14 @@ function buildDashboardV56HelperData_(sheet) {
   sheet.getRange('Z27').setNumberFormat('0');
 }
 
-function interestFormulaV510_(dates, balances, frame, normalRate, overRate, lowZoneOnly, lowZoneThreshold) {
+function buildOverdraftInterestFormula_(dates, balances, frame, normalRate, overRate, lowZoneOnly, lowZoneThreshold) {
   const filterExpr = lowZoneOnly
     ? `LET(m,MIN(FILTER(b,d>=TODAY(),d<TODAY()+30,ISNUMBER(b))),FILTER(b,d>=TODAY(),d<TODAY()+30,b<=m+${lowZoneThreshold},ISNUMBER(b)))`
     : `FILTER(b,d>=TODAY(),d<TODAY()+30,ISNUMBER(b))`;
   return `=LET(d,${dates},b,${balances},f,${filterExpr},debt,ARRAYFORMULA(IF(f<0,-f,0)),frm,${frame},r,${normalRate},ro,${overRate},SUM(ARRAYFORMULA(IF(debt<=frm,debt,frm)*r/365+IF(debt>frm,debt-frm,0)*ro/365)))`;
 }
 
-function writeDashboardCoreKpisV510_(sheet, snapshot) {
+function writeDashboardCoreMetrics_(sheet, snapshot) {
   const budget = snapshot.budget || {};
   const credit = snapshot.credit || {};
   const safety = snapshot.safetyBuffer || {};
@@ -233,99 +221,99 @@ function writeDashboardCoreKpisV510_(sheet, snapshot) {
   sheet.getRange('Z16').setValue(snapshot.remainingFrameAtLow);
 }
 
-function refreshDashboardForecastKpiV56(optionalSheet, optionalSnapshot) {
-  activateDashboardV510CoreVersion_();
-  const sheet = optionalSheet || getDashboardV56Sheet_();
+function refreshFinancialDashboardMetrics(optionalSheet, optionalSnapshot) {
+  syncDashboardReleaseIdentity_();
+  const sheet = optionalSheet || getFinancialDashboardSheet_();
   if (typeof getFinancialSnapshotV510_ !== 'function') throw new Error('Core V5.10.1 אינו מותקן.');
   const s = optionalSnapshot || getFinancialSnapshotV510_();
   if (s.coveredDays !== 30 || !isFinite(s.low30)) {
     sheet.getRange('Z4').setValue('לא זמין').setNote('תחזית 30 יום אינה מלאה.');
     return {covered:s.coveredDays, minimum:NaN, minimumDate:''};
   }
-  writeDashboardCoreKpisV510_(sheet, s);
+  writeDashboardCoreMetrics_(sheet, s);
   SpreadsheetApp.flush();
   return {covered:s.coveredDays, minimum:s.low30, minimumDate:s.low30Date};
 }
 
-function buildDashboardV56Layout_(sheet) {
-  mergeAndSetV56_(sheet,'A1:P2','המצב הכספי שלנו');
+function buildFinancialDashboardLayout_(sheet) {
+  mergeAndSetDashboardRange_(sheet,'A1:P2','המצב הכספי שלנו');
   sheet.getRange('A1:P2').setBackground('#16324F').setFontColor('#FFFFFF').setFontSize(22).setFontWeight('bold').setHorizontalAlignment('center').setVerticalAlignment('middle');
-  mergeAndSetV56_(sheet,'A3:P3','תמונה פשוטה וברורה של המצב — יתרת העו״ש מחושבת מעוגן מאומת ועסקאות מסונכרנות, לא יתרה חיה מהבנק');
+  mergeAndSetDashboardRange_(sheet,'A3:P3','תמונה פשוטה וברורה של המצב — יתרת העו״ש מחושבת מעוגן מאומת ועסקאות מסונכרנות, לא יתרה חיה מהבנק');
   sheet.getRange('A3:P3').setBackground('#EAF1F8').setFontColor('#38506A').setFontSize(10).setHorizontalAlignment('center');
 
-  buildMetricCardV56_(sheet,'A5:D8','יתרת עו״ש מחושבת','=Z2','#,##0 ₪');
-  buildMetricCardV56_(sheet,'E5:H8','סוף חודש צפוי','=Z3','#,##0 ₪');
-  buildMetricCardV56_(sheet,'I5:L8','שפל ב־30 יום','=Z4','#,##0 ₪');
-  buildMetricCardV56_(sheet,'M5:P8','מאזן חודשי','=Z9','#,##0 ₪');
+  buildDashboardMetricCard_(sheet,'A5:D8','יתרת עו״ש מחושבת','=Z2','#,##0 ₪');
+  buildDashboardMetricCard_(sheet,'E5:H8','סוף חודש צפוי','=Z3','#,##0 ₪');
+  buildDashboardMetricCard_(sheet,'I5:L8','שפל ב־30 יום','=Z4','#,##0 ₪');
+  buildDashboardMetricCard_(sheet,'M5:P8','מאזן חודשי','=Z9','#,##0 ₪');
 
-  buildSectionHeaderV56_(sheet,'A10:H10','מה זה אומר');
-  mergeAndSetV56_(sheet,'A11:H14','');
+  buildDashboardSectionHeader_(sheet,'A10:H10','מה זה אומר');
+  mergeAndSetDashboardRange_(sheet,'A11:H14','');
   sheet.getRange('A11').setFormula(`=IF($Z$3<0,"אם לא נעשה שינוי, סוף החודש צפוי להיות במינוס של "&TEXT(ABS($Z$3),"#,##0 ₪")&". נקודת השפל הצפויה ב־30 יום היא "&TEXT($Z$4,"#,##0 ₪")&".",IF($Z$9<0,"התקציב החודשי עדיין שלילי ב־"&TEXT(ABS($Z$9),"#,##0 ₪")&" לחודש.","התזרים החודשי מאוזן או חיובי. אפשר לעבור בהדרגה לבניית כרית ביטחון וחיסכון."))`);
-  styleTextPanelV56_(sheet.getRange('A11:H14'));
+  styleDashboardTextPanel_(sheet.getRange('A11:H14'));
 
-  buildSectionHeaderV56_(sheet,'I10:P10','המלצה מרכזית');
-  mergeAndSetV56_(sheet,'I11:P14','');
+  buildDashboardSectionHeader_(sheet,'I10:P10','המלצה מרכזית');
+  mergeAndSetDashboardRange_(sheet,'I11:P14','');
   sheet.getRange('I11').setFormula(`=IF($Z$3<0,"המטרה הראשונה היא לצמצם את הפער עד סוף החודש בלי להגדיל אשראי חדש. בדקו הוצאות משתנות, תשלומים שניתן לדחות וחיובים שניתן להזיז למועד בטוח יותר.",IF($Z$9<0,"המטרה הבאה היא לסגור גירעון חודשי של "&TEXT(ABS($Z$9),"#,##0 ₪")&" לחודש.",IF($Z$7<$Z$6,"התזרים יציב. עכשיו בונים כרית ביטחון. חסרים "&TEXT($Z$8,"#,##0 ₪")&" ליעד.","המצב יציב יחסית. אפשר להתקדם לחיסכון והשקעות בהתאם לסדר העדיפויות.")))`);
-  styleTextPanelV56_(sheet.getRange('I11:P14'));
+  styleDashboardTextPanel_(sheet.getRange('I11:P14'));
   sheet.getRange('I11:P14').setBackground('#FFF7E6');
 
-  buildSectionHeaderV56_(sheet,'A16:P16','משימות לביצוע');
-  buildTaskRowV56_(sheet,17,'1',`=IF($Z$3<0,"דחוף","מעקב")`,`=IF($Z$3<0,"עברו על ההוצאות עד סוף החודש וסמנו לפחות 3 הוצאות שניתן לדחות, לצמצם או לבטל.","שמרו על מסגרת ההוצאות עד סוף החודש.")`);
-  buildTaskRowV56_(sheet,18,'2',`=IF($Z$9<0,"חשוב","בוצע")`,`=IF($Z$9<0,"מצאו שיפור קבוע של "&TEXT(ABS($Z$9),"#,##0 ₪")&" לחודש באמצעות צמצום הוצאה או תוספת הכנסה.","המאזן החודשי אינו שלילי כרגע — המשיכו לעקוב.")`);
-  buildTaskRowV56_(sheet,19,'3',`=IF($Z$12>=50,"דחוף",IF($Z$12>=30,"חשוב","תקין"))`,`=IF($Z$12>=30,"היעד הוא פחות מ-30% לכל כרטיס. הכרטיס בעל היחס הגבוה ביותר הוא "&$Z$13&" עם "&TEXT($Z$12,"0.0")&"%. הימנעו מרכישות חדשות בתשלומים בכרטיס זה עד לירידה מתחת ליעד.","כל הכרטיסים המאומתים מתחת ליעד 30%.")`);
-  buildTaskRowV56_(sheet,20,'4',`=IF($Z$8>0,"בהמשך","בוצע")`,`=IF($Z$8>0,"לאחר איזון התזרים, התחילו לבנות כרית ביטחון. חסרים ליעד "&TEXT($Z$8,"#,##0 ₪")&".","יעד כרית הביטחון הושלם.")`);
+  buildDashboardSectionHeader_(sheet,'A16:P16','משימות לביצוע');
+  buildDashboardTaskRow_(sheet,17,'1',`=IF($Z$3<0,"דחוף","מעקב")`,`=IF($Z$3<0,"עברו על ההוצאות עד סוף החודש וסמנו לפחות 3 הוצאות שניתן לדחות, לצמצם או לבטל.","שמרו על מסגרת ההוצאות עד סוף החודש.")`);
+  buildDashboardTaskRow_(sheet,18,'2',`=IF($Z$9<0,"חשוב","בוצע")`,`=IF($Z$9<0,"מצאו שיפור קבוע של "&TEXT(ABS($Z$9),"#,##0 ₪")&" לחודש באמצעות צמצום הוצאה או תוספת הכנסה.","המאזן החודשי אינו שלילי כרגע — המשיכו לעקוב.")`);
+  buildDashboardTaskRow_(sheet,19,'3',`=IF($Z$12>=50,"דחוף",IF($Z$12>=30,"חשוב","תקין"))`,`=IF($Z$12>=30,"היעד הוא פחות מ-30% לכל כרטיס. הכרטיס בעל היחס הגבוה ביותר הוא "&$Z$13&" עם "&TEXT($Z$12,"0.0")&"%. הימנעו מרכישות חדשות בתשלומים בכרטיס זה עד לירידה מתחת ליעד.","כל הכרטיסים המאומתים מתחת ליעד 30%.")`);
+  buildDashboardTaskRow_(sheet,20,'4',`=IF($Z$8>0,"בהמשך","בוצע")`,`=IF($Z$8>0,"לאחר איזון התזרים, התחילו לבנות כרית ביטחון. חסרים ליעד "&TEXT($Z$8,"#,##0 ₪")&".","יעד כרית הביטחון הושלם.")`);
 
-  buildSectionHeaderV56_(sheet,'A22:H22','יציבות פיננסית');
-  mergeAndSetV56_(sheet,'A23:D23','אשראי');
-  mergeAndSetV56_(sheet,'E23:H23','כרית ביטחון');
+  buildDashboardSectionHeader_(sheet,'A22:H22','יציבות פיננסית');
+  mergeAndSetDashboardRange_(sheet,'A23:D23','אשראי');
+  mergeAndSetDashboardRange_(sheet,'E23:H23','כרית ביטחון');
   sheet.getRange('A24:D26').merge();
   sheet.getRange('E24:H26').merge();
   sheet.getRange('A24').setFormula(`=IF(AND(ISNUMBER($Z$5),ISNUMBER($Z$12)),"יחס חיובים מצרפי: "&TEXT($Z$5,"0.0")&"% | מקסימום: "&TEXT($Z$12,"0.0")&"% — "&$Z$13,"נתוני אשראי חלקיים — דורש אימות")`);
   sheet.getRange('A24').setNote('יחס החיוב הקרוב למסגרת בלבד, לא ניצול כולל. כרטיסים ללא מסגרת/חיוב או עם סתירת זהות מוחרגים; מסגרות משותפות עשויות לגרום לכפל במכנה.');
   sheet.getRange('E24').setFormula(`=IF(AND(ISNUMBER($Z$7),ISNUMBER($Z$6)),TEXT($Z$7,"#,##0 ₪")&" מתוך "&TEXT($Z$6,"#,##0 ₪"),"לא זמין")`);
-  styleMiniMetricV56_(sheet.getRange('A23:D26'));
-  styleMiniMetricV56_(sheet.getRange('E23:H26'));
+  styleDashboardMiniMetric_(sheet.getRange('A23:D26'));
+  styleDashboardMiniMetric_(sheet.getRange('E23:H26'));
 
-  buildSectionHeaderV56_(sheet,'I22:P22','עדכניות הנתונים');
-  mergeAndSetV56_(sheet,'I23:L23','סנכרון אחרון');
-  mergeAndSetV56_(sheet,'M23:P23','אימות עו״ש אחרון');
+  buildDashboardSectionHeader_(sheet,'I22:P22','עדכניות הנתונים');
+  mergeAndSetDashboardRange_(sheet,'I23:L23','סנכרון אחרון');
+  mergeAndSetDashboardRange_(sheet,'M23:P23','אימות עו״ש אחרון');
   sheet.getRange('I24:L26').merge();
   sheet.getRange('M24:P26').merge();
   sheet.getRange('I24').setFormula(`=IF($Z$10="","לא ידוע",TEXT($Z$10,"dd/mm/yyyy hh:mm"))`);
   sheet.getRange('M24').setFormula(`=IF($Z$11="","לא ידוע",TEXT($Z$11,"dd/mm/yyyy hh:mm"))`);
-  styleMiniMetricV56_(sheet.getRange('I23:L26'));
-  styleMiniMetricV56_(sheet.getRange('M23:P26'));
+  styleDashboardMiniMetric_(sheet.getRange('I23:L26'));
+  styleDashboardMiniMetric_(sheet.getRange('M23:P26'));
 
-  buildSectionHeaderV56_(sheet,'A28:P28','התראה מרכזית');
-  mergeAndSetV56_(sheet,'A29:P31','');
+  buildDashboardSectionHeader_(sheet,'A28:P28','התראה מרכזית');
+  mergeAndSetDashboardRange_(sheet,'A29:P31','');
   sheet.getRange('A29').setFormula(`=IF($Z$17="אין התראות פתוחות","אין כרגע התראות פתוחות.",$Z$17&IF($Z$18="","",CHAR(10)&$Z$18))`);
-  styleTextPanelV56_(sheet.getRange('A29:P31'));
+  styleDashboardTextPanel_(sheet.getRange('A29:P31'));
   sheet.getRange('A29:P31').setBackground('#FFF7E6');
 
-  mergeAndSetV56_(sheet,'A33:P34','');
+  mergeAndSetDashboardRange_(sheet,'A33:P34','');
   sheet.getRange('A33').setFormula(`=IF(AND(ISNUMBER($Z$15),ISNUMBER($Z$16)),"מרווח במסגרת בשפל: "&TEXT($Z$16,"#,##0 ₪")&" מתוך מסגרת עו״ש של "&TEXT($Z$15,"#,##0 ₪"),"מרווח מסגרת העו״ש דורש אימות")`);
   sheet.getRange('A33:P34').setBackground('#F2F5F8').setFontColor('#536273').setFontSize(10).setFontWeight('bold').setHorizontalAlignment('center').setVerticalAlignment('middle');
 
-  buildRiskPanelV510_(sheet);
+  buildDashboardRiskPanel_(sheet);
 }
 
-function buildRiskPanelV510_(sheet) {
-  buildSectionHeaderV56_(sheet,'A35:P35','שפל וריבית — 30 יום');
+function buildDashboardRiskPanel_(sheet) {
+  buildDashboardSectionHeader_(sheet,'A35:P35','שפל וריבית — 30 יום');
 
-  buildRiskMetricV510_(sheet,'A36:D36','A37:D37','A38:D38','נקודת השפל','=TEXT($Z$19,"#,##0 ₪")','=$Z$20');
-  buildRiskMetricV510_(sheet,'E36:H36','E37:H37','E38:H38','אזור השפל','=$Z$21','=$Z$22&" ימים"');
-  buildRiskMetricV510_(sheet,'I36:L36','I37:L37','I38:L38','ריבית משוערת — 30 יום','=TEXT($Z$23,"#,##0 ₪")&"–"&TEXT($Z$24,"#,##0 ₪")','=$Z$27&" ימים במינוס מתוך 30"');
-  buildRiskMetricV510_(sheet,'M36:P36','M37:P37','M38:P38','ריבית באזור השפל','=TEXT($Z$25,"#,##0 ₪")&"–"&TEXT($Z$26,"#,##0 ₪")','="ב־"&$Z$22&" ימי אזור השפל"');
+  buildDashboardRiskMetric_(sheet,'A36:D36','A37:D37','A38:D38','נקודת השפל','=TEXT($Z$19,"#,##0 ₪")','=$Z$20');
+  buildDashboardRiskMetric_(sheet,'E36:H36','E37:H37','E38:H38','אזור השפל','=$Z$21','=$Z$22&" ימים"');
+  buildDashboardRiskMetric_(sheet,'I36:L36','I37:L37','I38:L38','ריבית משוערת — 30 יום','=TEXT($Z$23,"#,##0 ₪")&"–"&TEXT($Z$24,"#,##0 ₪")','=$Z$27&" ימים במינוס מתוך 30"');
+  buildDashboardRiskMetric_(sheet,'M36:P36','M37:P37','M38:P38','ריבית באזור השפל','=TEXT($Z$25,"#,##0 ₪")&"–"&TEXT($Z$26,"#,##0 ₪")','="ב־"&$Z$22&" ימי אזור השפל"');
 
-  mergeAndSetV56_(sheet,'A39:P39','');
+  mergeAndSetDashboardRange_(sheet,'A39:P39','');
   sheet.getRange('A39').setFormula(`="אזור שפל = עד "&TEXT(INDEX('הגדרות'!B:B,MATCH("סף אזור שפל 30 יום",'הגדרות'!A:A,0)),"#,##0 ₪")&" מעל נקודת השפל | אומדן ריבית לפי שיעורי בנק לאומי המאומתים מ־2025: "&TEXT(INDEX('הגדרות'!B:B,MATCH("ריבית חובה עו״ש — נמוכה",'הגדרות'!A:A,0)),"0.00%")&"–"&TEXT(INDEX('הגדרות'!B:B,MATCH("ריבית חובה עו״ש — גבוהה",'הגדרות'!A:A,0)),"0.00%")&" בתוך המסגרת, "&TEXT(INDEX('הגדרות'!B:B,MATCH("ריבית חריגה עו״ש",'הגדרות'!A:A,0)),"0.00%")&" בחריגה | דורש רענון לשיעורי 2026"`);
   sheet.getRange('A39:P39').setBackground('#F2F5F8').setFontColor('#536273').setFontSize(9).setFontStyle('italic').setWrap(true).setHorizontalAlignment('center').setVerticalAlignment('middle');
 }
 
-function buildRiskMetricV510_(sheet, labelRange, valueRange, subRange, label, valueFormula, subFormula) {
-  mergeAndSetV56_(sheet,labelRange,label);
-  mergeAndSetV56_(sheet,valueRange,'');
-  mergeAndSetV56_(sheet,subRange,'');
+function buildDashboardRiskMetric_(sheet, labelRange, valueRange, subRange, label, valueFormula, subFormula) {
+  mergeAndSetDashboardRange_(sheet,labelRange,label);
+  mergeAndSetDashboardRange_(sheet,valueRange,'');
+  mergeAndSetDashboardRange_(sheet,subRange,'');
   sheet.getRange(valueRange.split(':')[0]).setFormula(valueFormula);
   sheet.getRange(subRange.split(':')[0]).setFormula(subFormula);
   const whole = sheet.getRange(labelRange.split(':')[0] + ':' + subRange.split(':')[1]);
@@ -335,7 +323,7 @@ function buildRiskMetricV510_(sheet, labelRange, valueRange, subRange, label, va
   sheet.getRange(subRange).setFontSize(10).setFontColor('#5B6B7A').setHorizontalAlignment('center').setVerticalAlignment('middle').setWrap(true);
 }
 
-function configureDashboardV56Grid_(sheet) {
+function configureFinancialDashboardGrid_(sheet) {
   for (let c=1;c<=16;c++) sheet.setColumnWidth(c,78);
   for (let r=1;r<=40;r++) sheet.setRowHeight(r,30);
   sheet.setRowHeight(1,34);
@@ -351,7 +339,7 @@ function configureDashboardV56Grid_(sheet) {
   sheet.setRowHeight(39,42);
 }
 
-function buildMetricCardV56_(sheet,rangeA1,label,formula,numberFormat) {
+function buildDashboardMetricCard_(sheet,rangeA1,label,formula,numberFormat) {
   const range=sheet.getRange(rangeA1), row=range.getRow(), col=range.getColumn(), cols=range.getNumColumns();
   sheet.getRange(row,col,1,cols).merge();
   sheet.getRange(row+1,col,range.getNumRows()-1,cols).merge();
@@ -360,12 +348,12 @@ function buildMetricCardV56_(sheet,rangeA1,label,formula,numberFormat) {
   range.setBackground('#FFFFFF').setBorder(true,true,true,true,false,false,'#D7E0E8',SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
 }
 
-function buildSectionHeaderV56_(sheet,rangeA1,text) {
-  mergeAndSetV56_(sheet,rangeA1,text);
+function buildDashboardSectionHeader_(sheet,rangeA1,text) {
+  mergeAndSetDashboardRange_(sheet,rangeA1,text);
   sheet.getRange(rangeA1).setBackground('#DCEAF7').setFontColor('#16324F').setFontSize(12).setFontWeight('bold').setHorizontalAlignment('right').setVerticalAlignment('middle');
 }
 
-function buildTaskRowV56_(sheet,row,number,priorityFormula,taskFormula) {
+function buildDashboardTaskRow_(sheet,row,number,priorityFormula,taskFormula) {
   sheet.getRange(row,1,1,2).merge();
   sheet.getRange(row,3,1,3).merge();
   sheet.getRange(row,6,1,11).merge();
@@ -375,23 +363,23 @@ function buildTaskRowV56_(sheet,row,number,priorityFormula,taskFormula) {
   sheet.getRange(row,1,1,16).setBackground('#FFFFFF').setVerticalAlignment('middle').setBorder(false,false,true,false,false,false,'#E3E8ED',SpreadsheetApp.BorderStyle.SOLID);
 }
 
-function styleTextPanelV56_(range) {
+function styleDashboardTextPanel_(range) {
   range.setBackground('#FFFFFF').setFontColor('#2B3A48').setFontSize(11).setWrap(true).setHorizontalAlignment('right').setVerticalAlignment('middle').setBorder(true,true,true,true,false,false,'#D7E0E8',SpreadsheetApp.BorderStyle.SOLID);
 }
 
-function styleMiniMetricV56_(range) {
+function styleDashboardMiniMetric_(range) {
   range.setBackground('#FFFFFF').setFontColor('#2B3A48').setHorizontalAlignment('center').setVerticalAlignment('middle').setBorder(true,true,true,true,false,false,'#D7E0E8',SpreadsheetApp.BorderStyle.SOLID);
   const sh=range.getSheet(), row=range.getRow(), col=range.getColumn(), rows=range.getNumRows(), cols=range.getNumColumns();
   sh.getRange(row,col,1,cols).setFontWeight('bold').setFontColor('#5B6B7A');
   sh.getRange(row+1,col,Math.max(1,rows-1),cols).setFontSize(14).setFontWeight('bold').setFontColor('#16324F').setWrap(true);
 }
 
-function applyDashboardV56ConditionalFormatting_(sheet) {
+function applyDashboardConditionalFormatting_(sheet) {
   const rules=[];
-  addCardRulesV56_(rules,sheet,'A5:D8','$Z$2');
-  addCardRulesV56_(rules,sheet,'E5:H8','$Z$3');
-  addCardRulesV56_(rules,sheet,'I5:L8','$Z$4');
-  addCardRulesV56_(rules,sheet,'M5:P8','$Z$9');
+  addDashboardMetricCardRules_(rules,sheet,'A5:D8','$Z$2');
+  addDashboardMetricCardRules_(rules,sheet,'E5:H8','$Z$3');
+  addDashboardMetricCardRules_(rules,sheet,'I5:L8','$Z$4');
+  addDashboardMetricCardRules_(rules,sheet,'M5:P8','$Z$9');
   rules.push(
     SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISNUMBER($Z$12),ISNUMBER($Z$14),$Z$12>=$Z$14)').setBackground('#FFF7E6').setRanges([sheet.getRange('A23:D26')]).build(),
     SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISNUMBER($Z$12),ISNUMBER($Z$14),$Z$12<$Z$14)').setBackground('#ECF8F0').setRanges([sheet.getRange('A23:D26')]).build(),
@@ -401,7 +389,7 @@ function applyDashboardV56ConditionalFormatting_(sheet) {
   sheet.setConditionalFormatRules(rules);
 }
 
-function addCardRulesV56_(rules,sheet,rangeA1,helperRef) {
+function addDashboardMetricCardRules_(rules,sheet,rangeA1,helperRef) {
   const range=sheet.getRange(rangeA1);
   rules.push(
     SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=AND(ISNUMBER('+helperRef+'),'+helperRef+'<0)').setBackground('#FDECEC').setRanges([range]).build(),
@@ -410,32 +398,32 @@ function addCardRulesV56_(rules,sheet,rangeA1,helperRef) {
   );
 }
 
-function mergeAndSetV56_(sheet,rangeA1,value) {
+function mergeAndSetDashboardRange_(sheet,rangeA1,value) {
   const range=sheet.getRange(rangeA1);
   range.merge();
   range.getCell(1,1).setValue(value);
   return range;
 }
 
-function unmergeDashboardV56_(sheet) {
+function unmergeFinancialDashboard_(sheet) {
   const whole=sheet.getRange(1,1,sheet.getMaxRows(),sheet.getMaxColumns());
   whole.getMergedRanges().forEach(function(range){ range.breakApart(); });
 }
 
-function ensureDashboardV56Grid_(sheet) {
+function ensureFinancialDashboardGrid_(sheet) {
   const requiredColumns=26, requiredRows=40;
   if(sheet.getMaxColumns()<requiredColumns) sheet.insertColumnsAfter(sheet.getMaxColumns(),requiredColumns-sheet.getMaxColumns());
   if(sheet.getMaxRows()<requiredRows) sheet.insertRowsAfter(sheet.getMaxRows(),requiredRows-sheet.getMaxRows());
 }
 
-function getDashboardV56Sheet_() {
+function getFinancialDashboardSheet_() {
   const ss=SpreadsheetApp.openById(DASHBOARD_V56.SPREADSHEET_ID);
   const sheet=ss.getSheetByName(DASHBOARD_V56.DASHBOARD_SHEET_NAME);
   if(!sheet) throw new Error('לא נמצא גיליון בשם "'+DASHBOARD_V56.DASHBOARD_SHEET_NAME+'".');
   return sheet;
 }
 
-function guardDashboardV561_(sheet) {
+function guardFinancialDashboardData_(sheet) {
   sheet.getRange('A3').setValue('יתרת העו״ש היא אומדן מעוגן מאומת. התחזיות תלויות בתאריכים ובהנחות שבמערכת.');
   const essential='AND(ISNUMBER($Z$2),ISNUMBER($Z$3),ISNUMBER($Z$4),ISNUMBER($Z$6),ISNUMBER($Z$7),ISNUMBER($Z$8),ISNUMBER($Z$9))';
   ['A11','I11','F17','F18'].forEach(function(cell){
@@ -454,9 +442,9 @@ function guardDashboardV561_(sheet) {
   });
 }
 
-function runDashboardSelfTestV5100() {
-  activateDashboardV510CoreVersion_();
-  const sheet = getDashboardV56Sheet_();
+function testFinancialDashboard() {
+  syncDashboardReleaseIdentity_();
+  const sheet = getFinancialDashboardSheet_();
   const checks = [
     ['גרסת דשבורד', String(getConfigParam_('גרסת דשבורד')) === DASHBOARD_V56.VERSION],
     ['Legacy Build ID', String(getConfigParam_('Legacy Build ID — Dashboard')) === DASHBOARD_V56.LEGACY_BUILD_ID],
@@ -471,4 +459,17 @@ function runDashboardSelfTestV5100() {
   const summary = (failed.length ? '🔴 ' : '🟢 ') + (checks.length-failed.length) + '/' + checks.length + ' בדיקות Dashboard '+DASHBOARD_V56.VERSION+' עברו' + (failed.length ? '\n' + failed.map(function(x){return '• '+x[0];}).join('\n') : '');
   SpreadsheetApp.getUi().alert('Dashboard '+DASHBOARD_V56.VERSION, summary, SpreadsheetApp.getUi().ButtonSet.OK);
   return {ok: failed.length===0, checks: checks, summary: summary};
+}
+
+// -----------------------------------------------------------------------------
+// Legacy Core compatibility only. Do not run these manually.
+// Canonical manual functions are:
+//   installFinancialDashboard()
+//   refreshFinancialDashboard()
+//   clearFinancialDashboard()
+//   testFinancialDashboard()
+// -----------------------------------------------------------------------------
+function installDashboardV56() { return installFinancialDashboard(); }
+function refreshDashboardForecastKpiV56(optionalSheet, optionalSnapshot) {
+  return refreshFinancialDashboardMetrics(optionalSheet, optionalSnapshot);
 }
