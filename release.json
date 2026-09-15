@@ -22,7 +22,7 @@
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
-    "dashboard": "V5.9.0",
+    "dashboard": "V5.10.0",
     "familyCfoAgent": "0.7.3-dev",
     "cashflowLiquidityAgent": "0.7.0",
     "financialPlanningAgent": "0.7.0",
