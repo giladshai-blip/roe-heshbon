@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "channel": "dev",
+  "version": "dev-1.1.0",
+  "promotionTarget": "core-1.1.0",
+  "approvedCore": "core-1.0.0",
+  "approvedMainShaAtStart": "edfd70321f646777d7f4d5012a65c95f05944a58",
+  "components": {
+    "appsScriptCore": "dev-1.1.0",
+    "dashboard": "dev-1.1.0",
+    "familyCfoAgent": "dev-1.1.0",
+    "wixBridge": "dev-1.1.0",
+    "userActions": "dev-1.1.0"
+  },
+  "legacyBuildIds": {
+    "appsScriptCore": "V5.10.1",
+    "dashboard": "V5.9.0",
+    "familyCfoAgent": "0.7.3-dev",
+    "wixBridge": "1.0.3"
+  },
+  "restore": {
+    "command": "שחזר",
+    "source": "latest approved main",
+    "scope": "active experiment components only"
+  }
+}
