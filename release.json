@@ -1,22 +1,23 @@
 {
   "schema": 1,
   "channel": "dev",
-  "version": "dev-1.1.0",
-  "promotionTarget": "core-1.1.0",
+  "version": "dev-1.2.0",
+  "promotionTarget": "core-1.2.0",
   "approvedCore": "core-1.0.0",
-  "experimentOpenedFromMainSha": "edfd70321f646777d7f4d5012a65c95f05944a58",
+  "experimentOpenedFromMainSha": "797db70f63bcd35c25c3822dbdd31e763a09a4c8",
   "latestApprovedMainSha": "797db70f63bcd35c25c3822dbdd31e763a09a4c8",
   "components": {
-    "appsScriptCore": "dev-1.1.0",
-    "dashboard": "dev-1.1.0",
-    "familyCfoAgent": "dev-1.1.0",
-    "cashflowLiquidityAgent": "dev-1.1.0",
-    "financialPlanningAgent": "dev-1.1.0",
-    "householdControllerAgent": "dev-1.1.0",
-    "incomeTaxAgent": "dev-1.1.0",
-    "protectionRetirementAgent": "dev-1.1.0",
-    "wixBridge": "dev-1.1.0",
-    "userActions": "dev-1.1.0"
+    "appsScriptCore": "dev-1.2.0",
+    "dashboard": "dev-1.2.0",
+    "familyCfoAgent": "dev-1.2.0",
+    "cashflowLiquidityAgent": "dev-1.2.0",
+    "financialPlanningAgent": "dev-1.2.0",
+    "householdControllerAgent": "dev-1.2.0",
+    "incomeTaxAgent": "dev-1.2.0",
+    "protectionRetirementAgent": "dev-1.2.0",
+    "wixBridge": "dev-1.2.0",
+    "userActions": "dev-1.2.0",
+    "conversationRouter": "dev-1.2.0"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
@@ -28,6 +29,14 @@
     "incomeTaxAgent": "0.7.0",
     "protectionRetirementAgent": "0.7.0",
     "wixBridge": "1.0.3"
+  },
+  "routing": {
+    "unsetMenu": ["GABI_AGENT", "DEV_ENVIRONMENT", "CORE_RUNTIME"],
+    "directTriggers": {
+      "היי גבי": "GABI_AGENT",
+      "היי dev": "DEV_ENVIRONMENT",
+      "היי core": "CORE_RUNTIME"
+    }
   },
   "restore": {
     "command": "שחזר",
