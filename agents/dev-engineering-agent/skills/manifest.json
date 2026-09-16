@@ -1,8 +1,9 @@
 {
   "schema": 1,
-  "version": "dev-1.7.0",
+  "version": "dev-1.9.0",
   "owner": "dev-engineering-agent",
   "loading": "lazy",
+  "approvedBase": "core-1.8.0",
   "skills": [
     {
       "id": "system-architecture",
