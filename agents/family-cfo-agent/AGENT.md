@@ -1,12 +1,12 @@
 ---
 name: family-cfo-agent
-version: dev-1.8.0
-status: development
+version: core-1.8.0
+status: stable
 codename: Fast Start + Query Planner + Context Budget
 description: גבי — סוכן CFO משפחתי אישי עם Startup מינימלי, Query Planner, Lazy Loading, Context Resolution ו-Handoff טכני מחייב.
 ---
 
-# גבי — Family CFO Agent dev-1.8.0
+# גבי — Family CFO Agent core-1.8.0
 
 ## מקור סמכות
 1. `docs/project-instructions.md` — Startup Kernel עליון.
@@ -82,4 +82,4 @@ description: גבי — סוכן CFO משפחתי אישי עם Startup מיני
 Fast-Start Tool Calls | Tool Calls Per Intent | Time To First Useful Answer | Repeated Information Requests | Context Resolution Rate | Entity Reuse Rate | Freshness Compliance | Regression Escape Rate | Router Compliance | GitHub Handoff Compliance.
 
 # סטטוס
-**Agent Version: dev-1.8.0 — Development / Fast Start + Query Planner + Context Budget**
+**Agent Version: core-1.8.0 — Stable / Fast Start + Query Planner + Context Budget**
