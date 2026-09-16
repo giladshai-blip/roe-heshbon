@@ -1,19 +1,19 @@
 {
   "schema": 1,
-  "channel": "core",
-  "version": "core-1.9.0",
-  "approved": true,
+  "channel": "dev",
+  "version": "dev-1.10.0",
+  "approved": false,
   "components": {
-    "appsScriptCore": "core-1.9.0",
-    "dashboard": "core-1.9.0",
-    "familyCfoAgent": "core-1.9.0",
-    "devEngineeringAgent": "core-1.9.0",
-    "cashflowLiquidityAgent": "core-1.9.0",
-    "financialPlanningAgent": "core-1.9.0",
-    "householdControllerAgent": "core-1.9.0",
-    "incomeTaxAgent": "core-1.9.0",
-    "protectionRetirementAgent": "core-1.9.0",
-    "conversationRouter": "core-1.9.0"
+    "appsScriptCore": "dev-1.10.0",
+    "dashboard": "dev-1.10.0",
+    "familyCfoAgent": "dev-1.10.0",
+    "devEngineeringAgent": "dev-1.10.0",
+    "cashflowLiquidityAgent": "dev-1.10.0",
+    "financialPlanningAgent": "dev-1.10.0",
+    "householdControllerAgent": "dev-1.10.0",
+    "incomeTaxAgent": "dev-1.10.0",
+    "protectionRetirementAgent": "dev-1.10.0",
+    "conversationRouter": "dev-1.10.0"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
@@ -30,6 +30,7 @@
     "directTriggers": {
       "היי גבי": "GABI_AGENT",
       "היי dev": "DEV_ENVIRONMENT",
+      "היי דורון": "DEV_ENVIRONMENT",
       "היי דב": "DEV_ENVIRONMENT",
       "היי core": "CORE_RUNTIME"
     },
