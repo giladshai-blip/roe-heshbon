@@ -1,19 +1,19 @@
 {
   "schema": 1,
   "channel": "core",
-  "version": "core-1.8.0",
+  "version": "core-1.9.0",
   "approved": true,
   "components": {
-    "appsScriptCore": "core-1.8.0",
-    "dashboard": "core-1.8.0",
-    "familyCfoAgent": "core-1.8.0",
-    "devEngineeringAgent": "core-1.8.0",
-    "cashflowLiquidityAgent": "core-1.8.0",
-    "financialPlanningAgent": "core-1.8.0",
-    "householdControllerAgent": "core-1.8.0",
-    "incomeTaxAgent": "core-1.8.0",
-    "protectionRetirementAgent": "core-1.8.0",
-    "conversationRouter": "core-1.8.0"
+    "appsScriptCore": "core-1.9.0",
+    "dashboard": "core-1.9.0",
+    "familyCfoAgent": "core-1.9.0",
+    "devEngineeringAgent": "core-1.9.0",
+    "cashflowLiquidityAgent": "core-1.9.0",
+    "financialPlanningAgent": "core-1.9.0",
+    "householdControllerAgent": "core-1.9.0",
+    "incomeTaxAgent": "core-1.9.0",
+    "protectionRetirementAgent": "core-1.9.0",
+    "conversationRouter": "core-1.9.0"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
@@ -51,9 +51,13 @@
     "proactiveBugHuntPerTask": true,
     "continuousBackgroundMonitoring": false,
     "gitHubLinksRequiredForCodeHandoff": true,
-    "gabiMustCheckCanonicalGitHubBeforeUnknownClaim": true
+    "gabiMustCheckCanonicalGitHubBeforeUnknownClaim": true,
+    "engineeringSkills": true,
+    "engineeringSkillsLoading": "lazy",
+    "engineeringSkillsManifest": "agents/dev-engineering-agent/skills/manifest.json"
   },
   "restore": {
-    "role": "latest approved source for dev restore"
+    "role": "latest approved source for dev restore",
+    "source": "core-1.9.0"
   }
 }
