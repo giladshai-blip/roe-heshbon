@@ -1,21 +1,19 @@
 {
   "schema": 1,
-  "channel": "dev",
-  "version": "dev-1.8.0",
-  "approved": false,
-  "promotionTarget": "core-1.8.0",
-  "approvedCore": "core-1.5.0",
+  "channel": "core",
+  "version": "core-1.8.0",
+  "approved": true,
   "components": {
-    "appsScriptCore": "dev-1.8.0",
-    "dashboard": "dev-1.8.0",
-    "familyCfoAgent": "dev-1.8.0",
-    "devEngineeringAgent": "dev-1.8.0",
-    "cashflowLiquidityAgent": "dev-1.8.0",
-    "financialPlanningAgent": "dev-1.8.0",
-    "householdControllerAgent": "dev-1.8.0",
-    "incomeTaxAgent": "dev-1.8.0",
-    "protectionRetirementAgent": "dev-1.8.0",
-    "conversationRouter": "dev-1.8.0"
+    "appsScriptCore": "core-1.8.0",
+    "dashboard": "core-1.8.0",
+    "familyCfoAgent": "core-1.8.0",
+    "devEngineeringAgent": "core-1.8.0",
+    "cashflowLiquidityAgent": "core-1.8.0",
+    "financialPlanningAgent": "core-1.8.0",
+    "householdControllerAgent": "core-1.8.0",
+    "incomeTaxAgent": "core-1.8.0",
+    "protectionRetirementAgent": "core-1.8.0",
+    "conversationRouter": "core-1.8.0"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
@@ -56,7 +54,6 @@
     "gabiMustCheckCanonicalGitHubBeforeUnknownClaim": true
   },
   "restore": {
-    "source": "core-1.5.0",
-    "scope": "active experiment components only"
+    "role": "latest approved source for dev restore"
   }
 }
