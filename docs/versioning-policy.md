@@ -13,9 +13,9 @@ The repository has one human-facing release version for the entire active system
 
 ## Current baseline
 
-- approved `main`: `core-1.8.0`
-- latest promoted capability: Gabi Query Planner + Context Budget + Fast Paths.
-- the next DEV release must use a version greater than `1.8.0` and list `core-1.8.0` as its approved base.
+- approved `main`: `core-1.9.0`
+- latest promoted capability: canonical lazy-loaded engineering Skills for Dov/DEV.
+- the next DEV release must use a version greater than `1.9.0` and list `core-1.9.0` as its approved base.
 
 ## Version resolution — mandatory checks
 
@@ -53,7 +53,7 @@ The Dashboard MUST display/store the release version as `גרסת דשבורד`.
 
 Old identifiers such as `V5.x`, `0.7.x` and `1.0.x` are Legacy Build IDs only. They may remain inside compatibility code, triggers, historical specifications, archived version folders and regression history when renaming them would damage traceability or compatibility. They MUST NOT be presented as the current release version.
 
-Example: Apps Script may still carry Legacy Build ID `V5.10.1`, while the active repository release is `core-1.8.0`.
+Example: Apps Script may still carry Legacy Build ID `V5.10.1`, while the active repository release is `core-1.9.0`.
 
 ## Files and tests
 
@@ -76,4 +76,4 @@ For code/script/release work, DEV must surface direct GitHub links to the canoni
 
 The command `שחזר` restores the active dev experiment component(s) from the latest approved `main` release, not from a previous dev revision unless explicitly requested.
 
-Current restore base: `core-1.8.0`.
+Current restore base: `core-1.9.0`.
