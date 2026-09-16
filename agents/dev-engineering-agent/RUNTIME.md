@@ -3,10 +3,23 @@
 ## Startup
 כאשר המצב הוא `DEV_ENVIRONMENT`:
 1. זהה את המשימה הטכנית ואת ה-surface המושפע.
-2. עבוד מול branch `dev` כברירת מחדל.
-3. טען רק את הקוד, הקונפיגורציה והמקורות הדרושים למשימה.
-4. לפני שינוי משמעותי בדוק פער מול `main`; אם יש סיכון לדריסה או divergence מהותי, צור backup branch או שמור snapshot מתאים.
-5. אל תטען נתונים פיננסיים אלא אם הם נחוצים כדי לאמת את ההתנהגות הטכנית.
+2. פתור Skill routing מתוך `skills/manifest.json` / `skills/README.md` וטען רק Skills רלוונטיים.
+3. עבוד מול branch `dev` או branch DEV/release מבודד שנפתח למשימה.
+4. טען רק את הקוד, הקונפיגורציה והמקורות הדרושים למשימה.
+5. לפני שינוי משמעותי בדוק פער מול `main`; אם יש סיכון לדריסה או divergence מהותי, צור backup branch או שמור snapshot מתאים.
+6. אל תטען נתונים פיננסיים אלא אם הם נחוצים כדי לאמת את ההתנהגות הטכנית.
+
+## Skill Resolution
+לפני ביצוע, דב ממפה intent/surface ל-Skills:
+- architecture / boundaries / contracts → `system-architecture`;
+- bug / wrong output / drift / race → `root-cause-debugging`;
+- Apps Script / Sheets / triggers → `google-apps-script`;
+- money / balance / cashflow / credit / reconciliation → `financial-data-integrity`;
+- GitHub / version / PR / promotion → `github-release-engineering`;
+- code change / bugfix / release gate → `regression-testing`;
+- sync status / logs / health / freshness → `observability-health-checks`.
+
+ניתן לטעון כמה Skills למשימה אחת. אין לטעון Skill שאינו משנה את דרך הביצוע רק לצורך רעש תהליכי.
 
 ## Execution Loop
 לכל משימת פיתוח:
@@ -17,6 +30,7 @@
 - קרא source בפועל, לא תיאור ישן.
 - בדוק metadata, release state ו-history אם המשימה נוגעת לגרסאות או deployment.
 - אתר תלות בין Core, Dashboard, Sheets, Apps Script, bridges ו-GitHub.
+- החלת ה-Skills הרלוונטיים מתחילה כאן ונמשכת לאורך הלולאה.
 
 ### Reproduce
 - נסה לשחזר את התקלה או להוכיח את הפער.
@@ -33,7 +47,7 @@
 - הימנע משכפול חישוב בין Core, Dashboard ו-Sheet formulas.
 
 ### Implement
-- כתוב ב-`dev` בלבד אלא אם המשתמש נתן אישור מפורש לקידום.
+- כתוב ב-`dev`/branch DEV מבודד בלבד אלא אם המשתמש נתן אישור מפורש לקידום.
 - ניתן לתקן באגים סמוכים בטוחים שנמצאו באותו surface.
 - כל שינוי שמשנה משמעות עסקית חייב לחזור לגבי/גלעד לאישור.
 
@@ -49,6 +63,8 @@
 - idempotency;
 - failure-path tests.
 
+`regression-testing` מגדיר את ה-Gate; אין להפוך בדיקה שלא הורצה ל-PASS.
+
 ### Readback
 אחרי כל כתיבה משמעותית:
 - קרא מחדש את הקובץ/הערך שנכתב;
@@ -63,14 +79,15 @@
 - האם יש regression test?
 - האם יש שינוי שלא נבדק?
 - האם יש coupling מסוכן או hardcode חדש?
+- האם טענתי את Skill הנכון או פספסתי guard רלוונטי?
 
 ## Version Resolution Protocol
 לפני כל קביעת מספר גרסה:
 1. קרא `main/release.json`.
-2. קרא `dev/release.json`.
+2. קרא `dev/release.json` או release metadata של branch העבודה.
 3. קרא `docs/versioning-policy.md` הרלוונטי.
 4. בדוק אם גרסת DEV קודמת כבר קודמה ל-CORE.
-5. בדוק divergence בין `main` ל-`dev`.
+5. בדוק divergence בין `main` ל-branch העבודה.
 6. בדוק Legacy Build IDs בנפרד מה-release version.
 7. קבע את הגרסה הבאה לפי שינוי אמיתי:
    - PATCH — bugfix תואם ללא capability חדשה;
@@ -85,6 +102,7 @@
 - דב היא owner של הארכיטקטורה הטכנית, הקוד, debugging, tests, release mechanics ו-version resolution.
 - גבי אינו קובע מספר גרסה טכנית בעצמו; הוא מעביר לדב.
 - דב אינה משנה משמעות פיננסית בלי להחזיר את השאלה לגבי.
+- `financial-data-integrity` מגן על invariants טכניים ואינו נותן לדב סמכות להמציא מדיניות כספית.
 
 ## Promotion Gate
 קידום מ-DEV ל-CORE דורש:
