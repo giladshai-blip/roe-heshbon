@@ -1,0 +1,17 @@
+const fs=require('fs');const vm=require('vm');const assert=require('assert');
+const src=fs.readFileSync(require('path').join(__dirname,'../src/RealEstateMarket.gs'),'utf8');vm.runInThisContext(src,{filename:'RealEstateMarket.gs'});
+assert.strictEqual(reNum_('3,050,000 ₪'),3050000);
+assert.strictEqual(reMedian_([1,3,2]),2);
+assert.strictEqual(reMedian_([1,2,3,4]),2.5);
+const subject={area:100,rooms:4,floor:3,base:3000000};
+const now=new Date('2026-09-17T00:00:00Z');
+const comps=[1,2,3,4,5,6].map((x,i)=>({ppsm:25000+i*100,date:new Date(2026,7-i,1)}));
+const est=reEstimate_(comps,subject,-0.015,now);
+assert.strictEqual(est.usable,true);
+assert.strictEqual(est.count,6);
+assert.ok(est.current>2500000&&est.current<2600000);
+assert.strictEqual(est.year1,Math.round(est.current*0.985));
+const low=reEstimate_(comps.slice(0,2),subject,-0.015,now);
+assert.strictEqual(low.usable,false);
+assert.strictEqual(low.confidence,'נמוכה');
+console.log('real-estate-market tests: PASS');
