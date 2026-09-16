@@ -1,0 +1,17 @@
+# Local secrets / credentials
+.env
+.env.*
+!.env.example
+.clasp.json
+credentials*.json
+service-account*.json
+secrets*.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local tooling
+node_modules/
+.DS_Store
+*.log
