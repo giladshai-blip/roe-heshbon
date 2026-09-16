@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "version": "dev-1.7.0",
+  "owner": "dev-engineering-agent",
+  "loading": "lazy",
+  "skills": [
+    {
+      "id": "system-architecture",
+      "path": "agents/dev-engineering-agent/skills/system-architecture/SKILL.md",
+      "triggers": ["architecture", "system design", "boundaries", "source of truth", "contracts", "integration", "refactor"]
+    },
+    {
+      "id": "root-cause-debugging",
+      "path": "agents/dev-engineering-agent/skills/root-cause-debugging/SKILL.md",
+      "triggers": ["bug", "wrong output", "failure", "drift", "race", "duplicate", "double count", "stale state"]
+    },
+    {
+      "id": "google-apps-script",
+      "path": "agents/dev-engineering-agent/skills/google-apps-script/SKILL.md",
+      "triggers": ["Apps Script", "Google Sheets", "trigger", "PropertiesService", "LockService", "Web App"]
+    },
+    {
+      "id": "financial-data-integrity",
+      "path": "agents/dev-engineering-agent/skills/financial-data-integrity/SKILL.md",
+      "triggers": ["balance", "cashflow", "credit card", "bank movement", "reconciliation", "forecast", "transaction", "double count"]
+    },
+    {
+      "id": "github-release-engineering",
+      "path": "agents/dev-engineering-agent/skills/github-release-engineering/SKILL.md",
+      "triggers": ["GitHub", "branch", "PR", "release", "version", "promotion", "restore", "rollback"]
+    },
+    {
+      "id": "regression-testing",
+      "path": "agents/dev-engineering-agent/skills/regression-testing/SKILL.md",
+      "triggers": ["code change", "bugfix", "test", "regression", "release gate", "promotion"]
+    },
+    {
+      "id": "observability-health-checks",
+      "path": "agents/dev-engineering-agent/skills/observability-health-checks/SKILL.md",
+      "triggers": ["health", "status", "sync", "logs", "freshness", "alerts", "diagnostics", "monitoring"]
+    }
+  ]
+}
