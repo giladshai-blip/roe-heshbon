@@ -3,9 +3,7 @@
 זהו **Startup Kernel** קנוני וקצר. כללי העבודה המפורטים נמצאים ב־`docs/project-runtime-rules.md` ונטענים רק לפי צורך.
 
 ## גרסה פעילה
-- Development: `dev-1.10.0`
-- Production מאושר: `core-1.9.0`
-- יעד קידום: `core-1.10.0`
+- Production מאושר: `core-1.10.0`
 - `release.json` הוא מקור האמת המכני לגרסה.
 
 # שער פתיחת שיחה
