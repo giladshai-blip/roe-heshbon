@@ -1,29 +1,42 @@
 {
   "schema": 1,
-  "channel": "core",
-  "version": "core-1.10.0",
-  "approved": true,
+  "channel": "dev",
+  "version": "dev-1.11.0",
+  "promotionTarget": "core-1.11.0",
+  "approvedCore": "core-1.10.0",
+  "approved": false,
   "components": {
-    "appsScriptCore": "core-1.10.0",
-    "dashboard": "core-1.10.0",
-    "familyCfoAgent": "core-1.10.0",
-    "devEngineeringAgent": "core-1.10.0",
-    "cashflowLiquidityAgent": "core-1.10.0",
-    "financialPlanningAgent": "core-1.10.0",
-    "householdControllerAgent": "core-1.10.0",
-    "incomeTaxAgent": "core-1.10.0",
-    "protectionRetirementAgent": "core-1.10.0",
-    "conversationRouter": "core-1.10.0"
+    "appsScriptCore": "dev-1.11.0",
+    "dashboard": "dev-1.11.0",
+    "familyCfoAgent": "dev-1.11.0",
+    "devEngineeringAgent": "dev-1.11.0",
+    "cashflowLiquidityAgent": "dev-1.11.0",
+    "financialPlanningAgent": "dev-1.11.0",
+    "householdControllerAgent": "dev-1.11.0",
+    "incomeTaxAgent": "dev-1.11.0",
+    "protectionRetirementAgent": "dev-1.11.0",
+    "conversationRouter": "dev-1.11.0"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
     "dashboard": "V5.10.0",
+    "realEstateComparables": "RE-V1.0.0",
     "familyCfoAgent": "0.7.2",
     "cashflowLiquidityAgent": "0.7.0",
     "financialPlanningAgent": "0.7.0",
     "householdControllerAgent": "0.7.0",
     "incomeTaxAgent": "0.7.0",
     "protectionRetirementAgent": "0.7.0"
+  },
+  "capabilities": {
+    "realEstateComparables": {
+      "status": "dev",
+      "source": "GovMap public real-estate endpoints",
+      "institutionalOnly": true,
+      "updatesFiveYearPlanYear1": true,
+      "minimumComparableDeals": 3,
+      "scheduledRefresh": "daily 05:30 Asia/Jerusalem after deployment and setup"
+    }
   },
   "routing": {
     "unsetMenu": ["GABI_AGENT", "DEV_ENVIRONMENT", "CORE_RUNTIME"],
