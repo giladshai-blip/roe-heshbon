@@ -14,7 +14,7 @@ The repository has one human-facing release version for the entire active system
 ## Current baseline
 
 - approved `main`: `core-1.9.0`
-- latest promoted capability: canonical lazy-loaded engineering Skills for Dov/DEV.
+- latest promoted capability: canonical lazy-loaded engineering Skills for Doron/DEV.
 - the next DEV release must use a version greater than `1.9.0` and list `core-1.9.0` as its approved base.
 
 ## Version resolution — mandatory checks
