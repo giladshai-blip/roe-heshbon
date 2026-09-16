@@ -17,7 +17,8 @@
 - money / balance / cashflow / credit / reconciliation → `financial-data-integrity`;
 - GitHub / version / PR / promotion → `github-release-engineering`;
 - code change / bugfix / release gate → `regression-testing`;
-- sync status / logs / health / freshness → `observability-health-checks`.
+- sync status / logs / health / freshness → `observability-health-checks`;
+- chat speed / context size / instruction bloat / lazy loading / startup path → `context-instruction-audit`.
 
 ניתן לטעון כמה Skills למשימה אחת. אין לטעון Skill שאינו משנה את דרך הביצוע רק לצורך רעש תהליכי.
 
