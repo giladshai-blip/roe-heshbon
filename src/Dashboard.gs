@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * רואה חשבון — Dashboard | Release core-1.4.0 | Legacy Build V5.10.0
+ * רואה חשבון — Dashboard | Release dev-3.0.1 | Legacy Build V5.10.0
  * ============================================================
  * מיועד ל-Core V5.10.1.
  *
@@ -23,7 +23,7 @@
 const DASHBOARD_V56 = {
   SPREADSHEET_ID: '1a172bDSpW5L4gDXgrZDmh82NBgB2eOM2dUNiyCl1dbM',
   DASHBOARD_SHEET_NAME: 'לוח מחוונים',
-  VERSION: 'core-1.4.0',
+  VERSION: 'dev-3.0.1',
   LEGACY_BUILD_ID: 'V5.10.0',
   HELPER_START_COL: 25,
   HELPER_END_COL: 26
@@ -35,7 +35,6 @@ function installDashboardV510() { return installDashboardV56(); }
 function refreshDashboardV510() { return installDashboardV56(); }
 
 function installDashboardV56() {
-  activateDashboardV510CoreVersion_();
   const ss = SpreadsheetApp.openById(DASHBOARD_V56.SPREADSHEET_ID);
   const sheet = getDashboardV56Sheet_();
 
@@ -106,12 +105,6 @@ function clearDashboardV55() { return clearDashboardV56(); }
 function installCleanDashboardV54() { return installDashboardV56(); }
 function refreshCleanDashboardV54() { return refreshDashboardV56(); }
 function clearCleanDashboardV54() { return clearDashboardV56(); }
-
-function activateDashboardV510CoreVersion_() {
-  try {
-    if (typeof V56 !== 'undefined' && V56) V56.DASHBOARD_VERSION = DASHBOARD_V56.VERSION;
-  } catch (e) {}
-}
 
 function ensureDashboardRiskConfigV510_() {
   if (typeof getConfigParam_ !== 'function' || typeof setConfigParam_ !== 'function') {
@@ -234,7 +227,6 @@ function writeDashboardCoreKpisV510_(sheet, snapshot) {
 }
 
 function refreshDashboardForecastKpiV56(optionalSheet, optionalSnapshot) {
-  activateDashboardV510CoreVersion_();
   const sheet = optionalSheet || getDashboardV56Sheet_();
   if (typeof getFinancialSnapshotV510_ !== 'function') throw new Error('Core V5.10.1 אינו מותקן.');
   const s = optionalSnapshot || getFinancialSnapshotV510_();
@@ -455,7 +447,6 @@ function guardDashboardV561_(sheet) {
 }
 
 function runDashboardSelfTestV5100() {
-  activateDashboardV510CoreVersion_();
   const sheet = getDashboardV56Sheet_();
   const checks = [
     ['גרסת דשבורד', String(getConfigParam_('גרסת דשבורד')) === DASHBOARD_V56.VERSION],
