@@ -5,7 +5,7 @@
 
 מתחתיו קיימות שתי שכבות נפרדות:
 1. **Domain Sub-agents פיננסיים** — 5 סוכנים לפי תחומי אחריות עסקיים.
-2. **DEV Engineering Agent — דב** — סוכנת הנדסה טכנית במצב `DEV_ENVIRONMENT`, עבור ארכיטקטורה, קוד, debugging, בדיקות, release ו-versioning.
+2. **DEV Engineering Agent — דורון** — סוכן הנדסה טכני במצב `DEV_ENVIRONMENT`, עבור ארכיטקטורה, קוד, debugging, בדיקות, release ו-versioning.
 
 היררכיה עסקית:
 
@@ -37,7 +37,7 @@
 Owned Direct Skills:
 `financial-skill-router`, `financial-system-auditor`, `financial-model-architect`.
 
-## 2. dev-engineering-agent — דב
+## 2. dev-engineering-agent — דורון
 שכבת ההנדסה הטכנית תחת גבי, פעילה במצב `DEV_ENVIRONMENT`.
 
 בעלות:
@@ -49,7 +49,7 @@ Owned Direct Skills:
 - release engineering ו-version resolution;
 - Bug Hunt ממוקד בכל משימת DEV.
 
-דב אינה מחליפה את Domain Sub-agents הפיננסיים ואינה משנה משמעות עסקית/פיננסית בלי להחזיר את הנושא לגבי.
+דורון אינו מחליף את Domain Sub-agents הפיננסיים ואינו משנה משמעות עסקית/פיננסית בלי להחזיר את הנושא לגבי.
 
 מקורות:
 - `agents/dev-engineering-agent/AGENT.md`
@@ -129,7 +129,7 @@ Owned Direct Skills:
 - Gabi הוא בעל ההחלטה הסופית והאורקסטרציה.
 
 ## Skills מערכתיים
-`financial-skill-router`, `financial-system-auditor` ו־`financial-model-architect` נשארים Skills ישירים של גבי. דב משתמשת בהם לפי צורך כאשר המשימה הטכנית דורשת הבנת מודל, אך אינה משכפלת את בעלותם.
+`financial-skill-router`, `financial-system-auditor` ו־`financial-model-architect` נשארים Skills ישירים של גבי. דורון משתמש בהם לפי צורך כאשר המשימה הטכנית דורשת הבנת מודל, אך אינו משכפל את בעלותם.
 
 ## Runtime
-Domain Sub-agents ודב אינם תהליכי רקע עצמאיים. ניטור עתידי/מתוזמן דורש Automation, CI, trigger או Runtime מחובר אמיתי.
+Domain Sub-agents ודורון אינם תהליכי רקע עצמאיים. ניטור עתידי/מתוזמן דורש Automation, CI, trigger או Runtime מחובר אמיתי.
