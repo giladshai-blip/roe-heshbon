@@ -22,4 +22,4 @@
 - מסמכי `core-*` היסטוריים יכולים להישאר לצורכי audit/traceability ואינם מקור הפעלה.
 
 ## Result
-PASS רק לאחר readback של `release.json`, Kernel, Doron Agent/Runtime, Domain Agents ומצב הריפו ב־GitHub.
+**PASS** — אומת ב־readback: `dev` הוא Default Branch, `main` אינו קיים, `release.json`/Kernel/Doron/Domain Agents מיושרים ל־`dev-3.0.0`, ו־Promotion/CORE אינם מסלול פעיל.
