@@ -1,6 +1,8 @@
-# Gabi — Learned Patterns Registry
+# Doron — Learned Patterns Registry
 
-מטרת הקובץ: לתעד דפוסי עבודה והעדפות מוכחות של גלעד שאמורות להשפיע על התנהגות הסוכן.
+מטרת הקובץ: לתעד דפוסי עבודה, קיצורי כוונה והעדפות מוכחות של גלעד שאמורים להשפיע על התנהגות דורון.
+
+הנתיב נשמר לצורכי תאימות היסטורית, אך ה־owner הפעיל הוא דורון (`dev-engineering-agent`). `גבי` הוא פרופיל שפה בלבד.
 
 הקובץ אינו מקור אמת פיננסי ואסור לשמור בו יתרות, מספרי כרטיסים/חשבונות, סיסמאות, tokens או נתונים פיננסיים אישיים רגישים.
 
@@ -24,7 +26,7 @@
 - **confidence:** HIGH
 - **scope:** response style
 - **status:** active
-- **system_owner:** Agent
+- **system_owner:** Doron
 - **last_reviewed:** 2026-09-14
 
 ## GP-002
@@ -34,7 +36,7 @@
 - **confidence:** HIGH
 - **scope:** context resolution
 - **status:** active
-- **system_owner:** Agent / Source of Truth
+- **system_owner:** Doron / Source of Truth
 - **last_reviewed:** 2026-09-14
 
 ## GP-003
@@ -44,7 +46,7 @@
 - **confidence:** HIGH
 - **scope:** financial status workflow
 - **status:** active
-- **system_owner:** Agent / Dashboard
+- **system_owner:** Doron / Dashboard
 - **last_reviewed:** 2026-09-14
 
 ## GP-004
@@ -54,7 +56,7 @@
 - **confidence:** HIGH
 - **scope:** sync status presentation
 - **status:** active
-- **system_owner:** Agent / Dashboard
+- **system_owner:** Doron / Dashboard
 - **last_reviewed:** 2026-09-14
 
 ## GP-005
@@ -64,7 +66,7 @@
 - **confidence:** HIGH
 - **scope:** alerts / presentation
 - **status:** active
-- **system_owner:** Agent / Dashboard / Validation
+- **system_owner:** Doron / Dashboard / Validation
 - **last_reviewed:** 2026-09-14
 
 ## GP-006
@@ -74,18 +76,18 @@
 - **confidence:** HIGH
 - **scope:** recommendations
 - **status:** active
-- **system_owner:** Agent
+- **system_owner:** Doron
 - **last_reviewed:** 2026-09-14
 
 ## GP-007
 - **type:** Operational Rule
-- **pattern:** כאשר פעולה בטוחה, הפיכה ומותרת — עדיף לבצע בפועל ולבדוק תוצאה, במקום להסביר בלבד.
-- **evidence:** בקשות חוזרות לביצוע ואישור Level 2 קיים.
+- **pattern:** לאחר שניתן אישור מפורש ל־scope מוגדר, יש לבצע בפועל ולבדוק תוצאה במקום להסתפק בהסבר. ללא אישור — נשארים ב־Read Only.
+- **evidence:** Approval Gate הקנוני + בקשות חוזרות של גלעד לביצוע ולא להסבר בלבד.
 - **confidence:** HIGH
 - **scope:** execution behavior
 - **status:** active
-- **system_owner:** Agent
-- **last_reviewed:** 2026-09-14
+- **system_owner:** Doron
+- **last_reviewed:** 2026-09-17
 
 ## GP-008
 - **type:** Intent Shortcut
@@ -94,12 +96,22 @@
 - **confidence:** HIGH
 - **scope:** context resolution
 - **status:** active
-- **system_owner:** Agent
+- **system_owner:** Doron
 - **last_reviewed:** 2026-09-14
+
+## GP-009
+- **type:** Intent Shortcut
+- **pattern:** כאשר גלעד אומר `מאושר לקידום`, הכוונה היא **אישור לגרסת ה־DEV הנוכחית** בתוך הענף `dev`. אין ליצור `main`, אין ליצור CORE, אין לשנות prefix מ־`dev-`, ואין לבצע merge/promotion לענף אחר. הפקודה מאשרת את פעולות סגירת ה־Release של גרסת ה־DEV הנוכחית בלבד, בכפוף ל־tests, readback ובדיקת version drift.
+- **evidence:** הוראה מפורשת של גלעד ב־2026-09-17 לאחר המעבר למודל Single-Branch DEV.
+- **confidence:** HIGH
+- **scope:** release approval / language intent
+- **status:** active
+- **system_owner:** Doron / Versioning
+- **last_reviewed:** 2026-09-17
 
 ---
 
 ## כלל תחזוקה
-כל דפוס חדש נרשם רק אם הוא מבוסס מספיק לפי `0.6.0-dev`.
+דפוס חדש נרשם רק כאשר הוא מבוסס על הוראה מפורשת או דפוס חוזר מספיק.
 דפוס יכול לעבור ל־`deprecated` או `replaced` אם גלעד משנה העדפה או אם מתגלה שהוא תלוי הקשר.
 בכל סתירה בין Registry זה לבין הוראה מפורשת חדשה של גלעד — ההוראה החדשה גוברת ויש לעדכן את הרישום.
