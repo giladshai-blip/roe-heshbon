@@ -2,76 +2,67 @@
 
 מערכת פיננסית משפחתית מבוססת Google Sheets, Google Apps Script, RiseUp API ו־Wix.
 
-## גרסה מאושרת
+## גרסאות
+- Production מאושר ב־`main`: **`core-1.10.0`**.
+- DEV ארכיטקטוני חדש: **`dev-2.1.0`**.
+- `release.json` הוא מקור האמת המכני לגרסה הפעילה בכל branch.
 
-**`core-1.10.0`** היא גרסת ה־Release המאושרת ב־`main`.
+## סוכן ראשי יחיד
+החל מ־`dev-2.1.0` הסוכן הראשי היחיד הוא **דורון** (`dev-engineering-agent`).
 
-מקור האמת המכני לגרסה המאושרת הוא `release.json`.
+דורון אחראי גם על פיננסים וגם על הנדסה: שיחה, החלטה פיננסית, Domain routing, מקור אמת, Freshness, קוד, Apps Script, Dashboard, GitHub, release ו־versioning.
 
-## שלושת מצבי השיחה
+## גבי
+**גבי אינו Agent.**
+השם גבי נשמר כפרופיל שפה וסגנון תשובה:
+- `היי גבי` → דורון עם `response_style=GABI`.
+- `היי דורון` / `היי dev` → דורון עם `response_style=DORON`.
+- `היי core` → דורון מול Runtime ה־CORE המאושר.
 
-כל שיחה חדשה מתחילה בתפריט:
+פרופיל השפה: `docs/gabi-language-style.md`.
 
-1. **גבי — סוכן פיננסי אישי** (`היי גבי`)
-2. **דורון — סביבת DEV לפיתוח ובדיקות** (`היי דורון` / `היי dev`)
-3. **CORE — המערכת הפעילה והמאושרת** (`היי core`)
+## היררכיה
 
-בחירה `1` / `2` / `3` מפעילה מיד את המצב. אין צורך בטריגר נוסף.
+```text
+גלעד
+└── דורון — Unified System Orchestrator
+    ├── Domain Sub-agents פיננסיים
+    ├── Engineering Skills
+    ├── Financial Playbooks
+    └── Runtime
+        ├── CORE / main
+        └── DEV / dev
+```
 
-טריגר ישיר מדלג על התפריט:
-- `היי גבי` → `GABI_AGENT`
-- `היי דורון` / `היי dev` → `DEV_ENVIRONMENT`
-- `היי דב` → `DEV_ENVIRONMENT` כ־legacy alias בלבד
-- `היי core` → `CORE_RUNTIME`
+CORE ו־DEV הם סביבות Runtime ולא Agents.
 
-`החלף מצב` או `תפריט` מחזירים לבחירה.
+## מקור אמת פיננסי
+**"רואה חשבון - מערכת פיננסית"**.
+לפני מספר, תחזית, המלצה או פעולה פיננסית מהותית נדרשים Freshness, בדיקת סתירות/כפילויות ו־Financial Self-Check.
 
 ## מדיניות גרסאות
-
 - `main` → `core-*`.
 - `dev` → `dev-*`.
-- גרסת Release אחת לכל המערכת.
-- Legacy Build IDs נשמרים לצורכי תאימות בלבד.
+- Legacy Build IDs כמו `V5.10.1` / `V5.10.0` נשמרים לצורכי תאימות בלבד ואינם Release Version.
 
-Legacy Build IDs מאושרים ב־`core-1.10.0`:
+Legacy Builds הנוכחיים:
 - Apps Script Core: `V5.10.1`
 - Dashboard: `V5.10.0`
-- Gabi Agent: `0.7.2`
-- Sub-agents: `0.7.0`
-
-## מצבי עבודה
-
-### GABI_AGENT
-גבי הוא שכבת השיחה הפיננסית. מקור האמת הפיננסי: `רואה חשבון - מערכת פיננסית`.
-
-### DEV_ENVIRONMENT
-דורון (`dev-engineering-agent`) אחראי על קוד, ארכיטקטורה, debugging, בדיקות, GitHub, release ו־versioning. פיתוח ובדיקות נעשים ב־`dev`; אין לבצע ניסוי ישירות ב־`main`.
-
-### CORE_RUNTIME
-תפעול ובדיקת המערכת המאושרת ב־`main`. פיתוח חדש מנותב ל־DEV לפני קידום.
-
-## Apps Script בגרסה המאושרת
-
-- `src/Code.gs` — מנוע פיננסי, סנכרון, תחזיות, אימות, Health Check וטריגרים.
-- `src/Dashboard.gs` — Dashboard מאושר.
-
-מזהי פונקציות Legacy נשמרים כאשר הם נדרשים כדי לא לשבור טריגרים, התקנות או תאימות לאחור.
+- Domain sub-agents legacy: `0.7.x`
 
 ## מקורות קנוניים
+- `docs/project-instructions.md` — Startup Kernel וניתוב.
+- `release.json` — גרסה ובעלות.
+- `agents/dev-engineering-agent/AGENT.md` — דורון.
+- `agents/dev-engineering-agent/RUNTIME.md` — Runtime מאוחד.
+- `docs/project-runtime-rules.md` — כללים פיננסיים/מערכתיים.
+- `docs/gabi-language-style.md` — שפת גבי בלבד.
+- `docs/versioning-policy.md` — מדיניות גרסאות.
 
-- `docs/project-instructions.md` — Startup Kernel וכללי ניתוב עליונים.
-- `release.json` — מקור האמת לגרסת המערכת.
-- `docs/project-runtime-rules.md` — כללי Runtime מפורטים.
-- `agents/family-cfo-agent/AGENT.md` — הגדרת גבי.
-- `agents/dev-engineering-agent/AGENT.md` — הגדרת דורון.
-- `docs/versioning-policy.md` — מדיניות גרסאות וקידום.
+`agents/family-cfo-agent/` נשמר זמנית כתאימות/היסטוריה ו־financial playbooks; הוא אינו Agent פעיל.
 
-מסמכי גרסאות ישנות ובדיקות regression נשמרים כהיסטוריה לצורכי traceability ואינם נחשבים מקור הפעלה קנוני.
-
-## שחזור
-
-`main` הוא מקור השחזור המאושר לניסויי `dev`. `שחזר` מחזיר את רכיבי הניסוי הפעיל מה־main המאושר האחרון ומבצע readback/compare.
+## פיתוח וקידום
+פיתוח חדש נעשה ב־DEV. קידום ל־main/CORE דורש tests, readback, metadata עקבי ואישור מפורש של גלעד.
 
 ## אבטחה
-
-אין לשמור PAT, סיסמאות, API keys או סודות בקוד או ב־GitHub. סודות נשמרים ב־Script Properties או במנגנון סודות מתאים בלבד.
+אין לשמור סודות או מפתחות גישה בקוד או ב־GitHub.
