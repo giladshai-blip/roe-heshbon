@@ -46,6 +46,15 @@
       "היי core": "DORON_CORE_RUNTIME"
     }
   },
+  "approvalPolicy": {
+    "stateChangingExecutionRequiresExplicitApproval": true,
+    "readOnlyRequiresApproval": false,
+    "approvalIsScoped": true,
+    "promotionRequiresSeparateExplicitApproval": true,
+    "readbackRequiresAdditionalApproval": false,
+    "sideEffectTestsRequireApproval": true,
+    "standingAutomationRequiresExplicitScopeApproval": true
+  },
   "startup": {
     "singleAgent": true,
     "pureGreetingFinancialDriveCalls": 0,
