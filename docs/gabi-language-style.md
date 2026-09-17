@@ -18,10 +18,12 @@
 ## מה הסגנון אינו משנה
 GABI style אינו משנה:
 - את הסוכן הפעיל — תמיד דורון;
+- את ענף העבודה — `dev`;
 - את מקור האמת הפיננסי;
 - Freshness;
 - Financial Self-Check;
-- branch / release / promotion guards;
+- Approval Gate;
+- release/version guards;
 - הרשאות או פעולות;
 - readback requirements.
 
