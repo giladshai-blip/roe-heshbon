@@ -2,26 +2,16 @@
 
 מערכת פיננסית משפחתית מבוססת Google Sheets, Google Apps Script, RiseUp API ו־Wix.
 
-## גרסאות
-- Production מאושר ב־`main`: **`core-1.10.0`**.
-- DEV ארכיטקטוני חדש: **`dev-2.1.0`**.
-- `release.json` הוא מקור האמת המכני לגרסה הפעילה בכל branch.
+## גרסה פעילה
+**`dev-3.0.0`** היא גרסת המערכת הפעילה.
+`release.json` הוא מקור האמת המכני לגרסה ולמבנה.
 
-## סוכן ראשי יחיד
-החל מ־`dev-2.1.0` הסוכן הראשי היחיד הוא **דורון** (`dev-engineering-agent`).
-
-דורון אחראי גם על פיננסים וגם על הנדסה: שיחה, החלטה פיננסית, Domain routing, מקור אמת, Freshness, קוד, Apps Script, Dashboard, GitHub, release ו־versioning.
-
-## גבי
-**גבי אינו Agent.**
-השם גבי נשמר כפרופיל שפה וסגנון תשובה:
-- `היי גבי` → דורון עם `response_style=GABI`.
-- `היי דורון` / `היי dev` → דורון עם `response_style=DORON`.
-- `היי core` → דורון מול Runtime ה־CORE המאושר.
-
-פרופיל השפה: `docs/gabi-language-style.md`.
-
-## היררכיה
+## מבנה
+- סוכן ראשי יחיד: **דורון** (`dev-engineering-agent`).
+- ענף פעיל יחיד ו־Default Branch: **`dev`**.
+- אין `main`, אין Production branch נפרד ואין CORE Runtime נפרד.
+- אין Promotion workflow.
+- `גבי` אינו Agent; הוא פרופיל שפה בלבד.
 
 ```text
 גלעד
@@ -29,40 +19,45 @@
     ├── Domain Sub-agents פיננסיים
     ├── Engineering Skills
     ├── Financial Playbooks
-    └── Runtime
-        ├── CORE / main
-        └── DEV / dev
+    └── dev — סביבת העבודה היחידה
+
+Presentation
+├── DORON style
+└── GABI style
 ```
 
-CORE ו־DEV הם סביבות Runtime ולא Agents.
+## שיחה
+- `היי דורון` / `היי dev` → דורון בסגנון DORON.
+- `היי גבי` → אותו דורון בסגנון GABI.
+- `היי core` הוא alias היסטורי בלבד ואינו מחליף Runtime או branch.
+
+## Approval Gate
+כל פעולה שמשנה מצב דורשת אישור מפורש של גלעד מראש.
+קריאה, ניתוח, אבחון, בדיקה סטטית ו־readback אינם דורשים אישור.
+האישור מוגבל ל־scope שהוגדר.
 
 ## מקור אמת פיננסי
 **"רואה חשבון - מערכת פיננסית"**.
-לפני מספר, תחזית, המלצה או פעולה פיננסית מהותית נדרשים Freshness, בדיקת סתירות/כפילויות ו־Financial Self-Check.
+לפני מספר, תחזית, המלצה או שינוי פיננסי מהותי נדרשים Freshness, בדיקת סתירות/כפילויות ו־Financial Self-Check.
 
-## מדיניות גרסאות
-- `main` → `core-*`.
-- `dev` → `dev-*`.
-- Legacy Build IDs כמו `V5.10.1` / `V5.10.0` נשמרים לצורכי תאימות בלבד ואינם Release Version.
+## גרסאות
+גרסה פעילה אחת לכל המערכת בפורמט `dev-MAJOR.MINOR.PATCH`.
 
-Legacy Builds הנוכחיים:
-- Apps Script Core: `V5.10.1`
-- Dashboard: `V5.10.0`
-- Domain sub-agents legacy: `0.7.x`
+Legacy Build IDs כמו `V5.10.1`, `V5.10.0` ו־`0.7.x` נשמרים לצורכי תאימות והיסטוריה בלבד ואינם Release Version.
 
 ## מקורות קנוניים
-- `docs/project-instructions.md` — Startup Kernel וניתוב.
-- `release.json` — גרסה ובעלות.
+- `docs/project-instructions.md` — Startup Kernel.
+- `release.json` — גרסה ומבנה.
 - `agents/dev-engineering-agent/AGENT.md` — דורון.
 - `agents/dev-engineering-agent/RUNTIME.md` — Runtime מאוחד.
 - `docs/project-runtime-rules.md` — כללים פיננסיים/מערכתיים.
 - `docs/gabi-language-style.md` — שפת גבי בלבד.
 - `docs/versioning-policy.md` — מדיניות גרסאות.
 
-`agents/family-cfo-agent/` נשמר זמנית כתאימות/היסטוריה ו־financial playbooks; הוא אינו Agent פעיל.
+`agents/family-cfo-agent/` נשמר כהיסטוריה ו־financial playbooks בלבד; הוא אינו Agent פעיל.
 
-## פיתוח וקידום
-פיתוח חדש נעשה ב־DEV. קידום ל־main/CORE דורש tests, readback, metadata עקבי ואישור מפורש של גלעד.
+## שחזור
+שחזור מתבצע מ־Git history או מ־backup ref מפורש. אין restore base נפרד מענף `main`.
 
 ## אבטחה
-אין לשמור סודות או מפתחות גישה בקוד או ב־GitHub.
+אין לשמור secrets, tokens, passwords או API keys בקוד או ב־GitHub.
