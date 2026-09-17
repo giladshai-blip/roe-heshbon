@@ -1,59 +1,36 @@
-# Agents — רואה חשבון
+# Agents — רואה חשבון | dev-3.0.1
 
-## ארכיטקטורה dev-3.0.0
-למערכת יש **סוכן ראשי יחיד: דורון** (`dev-engineering-agent`).
-
-`גבי` אינו Agent. הוא פרופיל שפה וסגנון תשובה בלבד.
+## מבנה
+למערכת יש סוכן ראשי יחיד: **דורון** (`dev-engineering-agent`).
+`גבי` אינו Agent; הוא Presentation Style בלבד.
 
 ```text
 גלעד
-└── דורון — Unified System Orchestrator
+└── דורון
     ├── household-controller-agent
     ├── cashflow-liquidity-agent
     ├── income-tax-agent
     ├── financial-planning-agent
     ├── protection-retirement-agent
     ├── Engineering Skills
-    ├── Financial Skills / Playbooks
-    └── dev — סביבת העבודה היחידה
-
-Presentation
-├── DORON style
-└── GABI style
+    ├── Financial Skills
+    └── dev
 ```
 
-## דורון — Owner יחיד
-דורון אחראי על:
-- שיחה, Context, Entity ו־Intent;
-- החלטה פיננסית סופית;
-- Domain routing ו־Financial Self-Check;
-- מקור אמת, Freshness ו־anti-double-counting;
-- קוד, ארכיטקטורה, Apps Script, Dashboard ו־APIs;
-- debugging, tests, optimization ו־observability;
-- GitHub, release ו־versioning;
-- AI instructions, response language ומילון תצוגה.
+## דורון
+Owner של שיחה, החלטה פיננסית, Domain routing, Source of Truth/Freshness, קוד, Apps Script, Dashboard, GitHub, release/versioning, tests ו־optimization.
 
-## Domain Sub-agents
-Domain Sub-agents הם מומחים תחת דורון ואינם conversation mode עצמאי.
+## Domain Agents
+מומחי תחום תחת דורון; אינם conversation mode עצמאי ונטענים רק כשיכולים לשנות החלטה או בדיקה.
 
-## Branch Model
-- ענף פעיל יחיד: `dev`.
-- אין `main`, אין CORE Runtime נפרד ואין Production branch.
-- אין Promotion workflow.
-- שחזור מתבצע מ־Git history או backup ref מפורש.
+## Branch / Approval
+- `dev` הוא branch פעיל יחיד.
+- אין `main`, CORE או Promotion workflow.
+- כל mutation דורש אישור מפורש; Read Only ו־readback לא.
+- `מאושר לקידום` = אישור לסגירת Release ה־DEV הנוכחי בתוך `dev`.
 
-## Approval Gate
-כל פעולה שמשנה מצב דורשת אישור מפורש של גלעד.
-Read Only ו־readback אינם דורשים אישור.
+## GABI
+`היי גבי` → דורון עם `response_style=GABI`. כללי ניסוח: `docs/gabi-language-style.md`.
 
-## גבי
-- `היי גבי` → דורון + `response_style=GABI`.
-- אין `GABI_AGENT` פעיל.
-- כללי השפה: `docs/gabi-language-style.md`.
-
-## family-cfo-agent
-`agents/family-cfo-agent/` הוא אזור היסטורי/playbooks בלבד. `AGENT.md` שבו מסומן RETIRED.
-
-## Runtime
-ה־Runtime הפעיל הוא דורון על `dev` בלבד.
-ניטור עתידי דורש Automation, CI או trigger אמיתי.
+## Historical
+`agents/family-cfo-agent/` נשמר ל־playbooks, Intent learning ו־audit בלבד; `AGENT.md` בו RETIRED.
