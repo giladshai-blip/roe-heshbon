@@ -1,29 +1,26 @@
 ---
 name: family-cfo-agent
-version: dev-2.1.0
+version: dev-3.0.0
 status: retired
 codename: Gabi Language Compatibility Stub
 ---
 
 # family-cfo-agent — RETIRED
 
-החל מ־`dev-2.1.0` **גבי אינו Agent פעיל**.
-
-כל סמכויות האורקסטרציה, ההחלטה הפיננסית, Domain routing, עבודה טכנית, release ו־versioning הועברו לדורון (`agents/dev-engineering-agent/AGENT.md`).
+**גבי אינו Agent פעיל.**
+כל סמכויות האורקסטרציה, ההחלטה הפיננסית והעבודה הטכנית נמצאות אצל דורון (`agents/dev-engineering-agent/AGENT.md`).
 
 ## מה נשאר בשם גבי
-`גבי` הוא **פרופיל שפה וסגנון תשובה בלבד** לפי:
-`docs/gabi-language-style.md`.
+`גבי` הוא פרופיל שפה וסגנון תשובה בלבד לפי `docs/gabi-language-style.md`.
+`היי גבי` מפעיל את דורון עם `response_style=GABI`.
 
-`היי גבי` מפעיל את דורון עם `response_style=GABI`; הוא אינו מפעיל את הקובץ הזה כסוכן נפרד.
+## תאימות והיסטוריה
+התיקייה `agents/family-cfo-agent/` נשמרת עבור playbooks, Query Planner, patterns, decision memory ו־traceability היסטורי לפי צורך.
+היא אינה source of authority ואינה conversation mode.
 
-## תאימות
-התיקייה `agents/family-cfo-agent/` נשמרת זמנית עבור:
-- playbooks פיננסיים היסטוריים;
-- Query Planner / patterns / decision memory לפי צורך;
-- traceability לגרסאות קודמות.
-
-הקבצים הללו הם מקורות עזר בלבד. הם אינם source of authority ואינם משנים את זהות הסוכן הפעיל.
+## Branch Model
+המערכת פועלת על `dev` בלבד.
+אין `main`, אין CORE Runtime נפרד ואין Promotion workflow.
 
 ## מקור סמכות פעיל
 1. `docs/project-instructions.md`
