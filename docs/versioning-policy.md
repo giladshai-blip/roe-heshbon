@@ -1,69 +1,51 @@
 # Versioning Policy — Single Branch
 
 ## Rule
-המערכת פועלת עם Release פעיל אחד על ענף `dev` בלבד.
+המערכת פועלת עם Release פעיל אחד על `dev` בלבד.
 
 - פורמט: `dev-MAJOR.MINOR.PATCH`.
 - `release.json` הוא מקור האמת המכני לגרסה הפעילה.
 - דורון (`dev-engineering-agent`) הוא owner של version resolution ו־release metadata.
-- אין `main`, אין prefix פעיל מסוג `core-`, ואין Promotion בין ענפים.
+- אין `main`, אין prefix פעיל `core-`, ואין Promotion בין ענפים.
 
 ## Current baseline
 - active branch: `dev`.
-- active release: `dev-3.0.0`.
+- active release: `dev-3.0.1`.
 - architecture: single-agent + single-branch Doron.
-
-מספרים ישנים מסוג `core-*`, `V5.x`, `0.7.x` נשמרים בהיסטוריה/Legacy בלבד ואינם מייצגים את הגרסה הפעילה.
+- change class: PATCH — branch-wide optimization, drift cleanup and context reduction without intentional financial semantics change.
 
 ## Version Resolution
-לפני שינוי גרסה דורון בודק:
-1. `release.json` ב־`dev`;
-2. `docs/versioning-policy.md`;
-3. Git history, branches ניסיוניים וגרסאות שכבר שימשו;
-4. Legacy Build IDs בנפרד מה־Release Version.
+לפני שינוי גרסה:
+1. קרא `release.json` ב־`dev`.
+2. בדוק Git history וגרסאות שכבר שימשו.
+3. הפרד Legacy Build IDs מ־Release Version.
+4. קבע Change Class לפי ההשפעה בפועל.
 
 אין לנחש מספר גרסה מזיכרון.
 
 ## Change Class
-- `PATCH` — bugfix תואם ללא שינוי חוזה.
+- `PATCH` — bugfix/optimization תואם ללא שינוי חוזה מהותי.
 - `MINOR` — capability/contract/workflow חדש תואם.
 - `MAJOR` — breaking compatibility או שינוי ארכיטקטוני/חוזי מהותי.
 
-המעבר ממודל `main + dev + CORE + promotion` למודל `dev` יחיד הוא MAJOR ולכן הגרסה היא `dev-3.0.0`.
+## Component Alignment
+כל רכיב פעיל שמצהיר Release Version משתמש בגרסה הפעילה של הענף. Legacy IDs יכולים להישאר בנפרד לצורכי תאימות.
 
-## Components
-כל הרכיבים הפעילים חולקים את אותה גרסת Release, כולל:
-- Apps Script Core;
-- Dashboard;
-- Doron unified orchestrator;
-- Gabi language style;
-- financial Domain Sub-agents;
-- router/bridges פעילים.
-
-## Legacy Identifiers
-Legacy Build IDs כגון `V5.10.1`, `V5.10.0`, `0.7.x` ומסמכי `core-*` היסטוריים יכולים להישאר לצורכי traceability ותאימות.
-הם אינם Release Version פעיל.
-
-## Files and Tests
-מסמך/בדיקה חדשים שמייצגים release פעיל משתמשים ב־`dev-3.0.0` או במספר ה־DEV הפעיל הבא.
-מסמכים היסטוריים נשארים ללא שינוי לצורכי auditability.
-
-## Approval Gate
-שינוי `release.json`, גרסה, branch או metadata דורש אישור מפורש של גלעד לפני mutation.
-קריאת metadata ו־Git history היא Read Only ואינה דורשת אישור.
+## Legacy / Historical
+`core-*`, `V5.x`, `0.7.x` ומסמכי regression ישנים מותרים רק כאשר הם מזוהים במפורש כ־Legacy/Historical. הם אינם נטענים כברירת מחדל ואינם קובעים את הגרסה הפעילה.
 
 ## Release Gate
-לפני הצגת גרסה כפעילה לאחר שינוי:
+לפני הצגת גרסה כמאושרת:
 - tests רלוונטיים עברו;
 - readback תקין;
 - `release.json` והמסמכים הקנוניים מסכימים;
-- אין version drift פתוח בשטח ששונה.
+- אין version drift פתוח בשטח ששונה;
+- גלעד אמר `מאושר לקידום` או נתן אישור מפורש שקול.
 
-אין Promotion Gate כי אין ענף יעד אחר.
+`מאושר לקידום` = אישור לגרסת ה־DEV הנוכחית בתוך `dev`; אין מעבר לענף אחר.
 
-## GitHub Handoff
-לכל שינוי קוד/סקריפט/release דורון מצרף קישור GitHub ישיר למקור ששונה ול־commit הרלוונטי כאשר קיים.
+## Approval Gate
+שינוי release/version/metadata דורש אישור מפורש לפני mutation. קריאת metadata/history היא Read Only.
 
 ## Restore
-`שחזר` משתמש ב־Git history או backup ref מפורש על `dev`.
-אין restore base מסוג `main`/`core`.
+שחזור משתמש ב־Git history או backup ref מפורש על `dev`.
