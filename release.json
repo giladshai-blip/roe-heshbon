@@ -1,26 +1,32 @@
 {
-  "schema": 2,
+  "schema": 3,
   "channel": "dev",
-  "version": "dev-2.1.0",
-  "approved": false,
-  "promotionTarget": "core-2.1.0",
-  "approvedCore": "core-1.10.0",
-  "basedOnMainSha": "c29b5344182ddc9ceb8788d32743af60b40ebe03",
-  "architecture": "single-agent-unified-doron",
+  "version": "dev-3.0.0",
+  "status": "active-development",
+  "architecture": "single-agent-single-branch-doron",
+  "repository": {
+    "defaultBranch": "dev",
+    "activeBranches": ["dev"],
+    "productionBranch": null,
+    "coreRuntimeEnabled": false,
+    "promotionEnabled": false
+  },
   "components": {
-    "appsScriptCore": "dev-2.1.0",
-    "dashboard": "dev-2.1.0",
-    "unifiedOrchestrator": "dev-2.1.0",
-    "devEngineeringAgent": "dev-2.1.0",
-    "gabiLanguageStyle": "dev-2.1.0",
-    "cashflowLiquidityAgent": "dev-2.1.0",
-    "financialPlanningAgent": "dev-2.1.0",
-    "householdControllerAgent": "dev-2.1.0",
-    "incomeTaxAgent": "dev-2.1.0",
-    "protectionRetirementAgent": "dev-2.1.0"
+    "appsScriptCore": "dev-3.0.0",
+    "dashboard": "dev-3.0.0",
+    "unifiedOrchestrator": "dev-3.0.0",
+    "devEngineeringAgent": "dev-3.0.0",
+    "gabiLanguageStyle": "dev-3.0.0",
+    "cashflowLiquidityAgent": "dev-3.0.0",
+    "financialPlanningAgent": "dev-3.0.0",
+    "householdControllerAgent": "dev-3.0.0",
+    "incomeTaxAgent": "dev-3.0.0",
+    "protectionRetirementAgent": "dev-3.0.0"
   },
   "retiredComponents": {
-    "familyCfoAgent": "retired-in-dev-2.1.0"
+    "familyCfoAgent": "retired",
+    "coreRuntime": "retired",
+    "mainBranchWorkflow": "retired"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
@@ -36,27 +42,26 @@
     "activeAgent": "dev-engineering-agent",
     "financialOwnership": "dev-engineering-agent",
     "technicalOwnership": "dev-engineering-agent",
-    "coreIsRuntimeOnly": true,
     "gabiIsStyleOnly": true,
     "directTriggers": {
       "היי גבי": "DORON_GABI_STYLE",
       "היי דורון": "DORON_STYLE",
       "היי dev": "DORON_STYLE",
       "היי דב": "DORON_STYLE_LEGACY_ALIAS",
-      "היי core": "DORON_CORE_RUNTIME"
+      "היי core": "DORON_STYLE_LEGACY_ALIAS"
     }
   },
   "approvalPolicy": {
     "stateChangingExecutionRequiresExplicitApproval": true,
     "readOnlyRequiresApproval": false,
     "approvalIsScoped": true,
-    "promotionRequiresSeparateExplicitApproval": true,
     "readbackRequiresAdditionalApproval": false,
     "sideEffectTestsRequireApproval": true,
     "standingAutomationRequiresExplicitScopeApproval": true
   },
   "startup": {
     "singleAgent": true,
+    "singleBranch": true,
     "pureGreetingFinancialDriveCalls": 0,
     "lazyRuntime": true,
     "conversationCache": true,
@@ -73,9 +78,8 @@
     "readbackRequiredForWrites": true
   },
   "engineering": {
-    "defaultDevBranch": "dev",
+    "activeBranch": "dev",
     "versionOwner": "dev-engineering-agent",
-    "promotionRequiresExplicitApproval": true,
     "proactiveBugHuntPerTask": true,
     "continuousBackgroundMonitoring": false,
     "gitHubLinksRequiredForCodeHandoff": true,
@@ -86,7 +90,7 @@
     "userFacingGlossary": "docs/user-facing-glossary.md"
   },
   "restore": {
-    "role": "latest approved source for dev restore",
-    "source": "core-1.10.0"
+    "strategy": "git-history-or-explicit-backup-ref",
+    "defaultBranch": "dev"
   }
 }
