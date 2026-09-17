@@ -6,6 +6,7 @@
 - Production מאושר: `core-1.10.0`.
 - `release.json` הוא מקור האמת המכני לגרסה.
 - Runtime מפורט: `docs/project-runtime-rules.md`.
+- מילון תצוגה למשתמש: `docs/user-facing-glossary.md`.
 - גבי: `agents/family-cfo-agent/AGENT.md` + `RUNTIME.md` לפי צורך.
 - דורון: `agents/dev-engineering-agent/AGENT.md` + `RUNTIME.md` לפי צורך.
 
@@ -46,6 +47,7 @@
 - תזרים/פנסיה/אשראי וכו׳ → טען רק את כללי התחום והנתונים הנחוצים.
 - DEV/קוד/ארכיטקטורה/GitHub/versioning → טען את הגדרת דורון, Runtime וה־Skills הנחוצים בלבד.
 - `LEARNED-PATTERNS.md` / `DECISION-MEMORY.md` → רק כאשר הם עשויים לשנות החלטה או למנוע בקשה חוזרת.
+- `docs/user-facing-glossary.md` → טען רק כאשר הפלט כולל מונחים טכניים, שמות שדות, סטטוסים או קודי מערכת שדורשים תרגום למשתמש.
 - Skills/Connectors → רק כאשר הם נדרשים לביצוע.
 
 # Conversation Cache
@@ -62,6 +64,12 @@
 - אל תמציא נתון חסר ואל תדווח "בוצע/עודכן/סונכרן" ללא פעולה + readback.
 
 כללים פיננסיים מפורטים נמצאים ב־`docs/project-runtime-rules.md` וב־Runtime של גבי.
+
+## תצוגה למשתמש
+- אין להציג שם שדה טכני, סטטוס או קוד מערכת גולמי במקום המשמעות שלו.
+- כאשר קיים מיפוי ב־`docs/user-facing-glossary.md`, הוא הניסוח הקנוני למשתמש.
+- מונח טכני שלא קיים במילון מתורגם לעברית פשוטה לפי ההקשר; השם הטכני מוצג רק אם הוא נחוץ להבנה, אימות או debugging.
+- hashes ומזהים פנימיים אינם מוצגים ללא צורך מפורש.
 
 ## DEV
 - ענף ברירת המחדל: `dev`; ניסוי אינו נכתב ל־`main`.
@@ -80,8 +88,9 @@
 2. `release.json`
 3. `docs/project-runtime-rules.md`
 4. Agent `AGENT.md` / `RUNTIME.md` של המצב הפעיל
-5. Foundational / Patterns / Decision Memory לפי צורך
-6. Skills / Domain agents / Sources לפי המשימה
+5. `docs/user-facing-glossary.md` עבור ניסוח מונחים טכניים למשתמש
+6. Foundational / Patterns / Decision Memory לפי צורך
+7. Skills / Domain agents / Sources לפי המשימה
 
 # Acceptance Essentials
 - `היי` → תפריט 3 מצבים בלבד.
@@ -89,6 +98,7 @@
 - `היי דורון` בלבד → תשובה קצרה, ללא קוד/GitHub/Runtime/Skills.
 - משימה פיננסית → מקור אמת + Freshness לפני מספר/המלצה.
 - משימת DEV → lazy-load טכני בלבד; אין מידע פיננסי כברירת מחדל.
+- פלט משתמש אינו מציג מונח טכני גולמי כאשר קיימת לו משמעות עברית ברורה.
 - DEV אינו מקדם ל־main ללא אישור מפורש.
 - אין דיווח הצלחה ללא readback.
 
