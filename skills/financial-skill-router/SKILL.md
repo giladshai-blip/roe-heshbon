@@ -1,112 +1,48 @@
 ---
 name: financial-skill-router
-description: מנתב בקשות במערכת רואה חשבון לפי כוונה, הקשר פעיל, ראיה חדשה והפעולה הנדרשת, תוך שמירה על מקור אמת אחד ובקרות לפני פעולה.
+description: מנתב בקשות פיננסיות לפי Intent, הקשר, evidence והפעולה הנדרשת.
+version: dev-3.0.1
+owner: dev-engineering-agent
 ---
 
 # Financial Skill Router
 
-## מטרה
-לבחור את ה־Skill המוביל וה־Skills התומכים לפי מה שהמשתמש באמת מנסה להשיג עכשיו — לא רק לפי מילות מפתח — בלי לערבב תחומי אחריות ובלי לעקוף את ההנחיה המרכזית.
+## Rule
+פעל תחת `docs/project-instructions.md` על `dev`. טען רק Skill שיכול לשנות את ההחלטה או את הבקרה.
 
-## כלל עליון
-לפני ניתוח פיננסי משמעותי, שינוי מערכת, קוד, דשבורד, נוסחה, תחזית, KPI, סנכרון, אימות נתונים או החלטה פיננסית — קרא את `docs/project-instructions.md` מתוך branch `main`.
+## Resolution
+`Intent → Active Goal → New Evidence → Required Action → Lead Skill → Optional Supporting Skills`
 
-## מודל ניתוב 0.2
-ה־Router פותר תחילה ארבעה ממדים:
-1. `intent` — מה גלעד מבקש להשיג.
-2. `active_goal` — מהו היעד הפעיל מהשיחה/התהליך הנוכחי.
-3. `new_evidence` — האם נכנס נתון/מסמך/אירוע חדש.
-4. `required_action` — קריאה, אימות, קליטה, סימולציה, החלטה, עדכון או ביקורת.
+## Routing
+- מסמך/צילום/דוח → `financial-document-verifier`
+- אירוע חדש/שינוי אירוע → `financial-event-ingestor`
+- תנועות בנק/כרטיס / reconciliation → `bank-transaction-reconciler`
+- Gmail/Drive פיננסי → `financial-inbox-monitor`
+- עו״ש/30 יום/מינוס → `cashflow-guardian`
+- Before→After / מה יקרה אם → `decision-impact-simulator`
+- כרטיס/מסגרת/מועד חיוב → `credit-card-optimizer`
+- הוראות קבע/מנויים → `recurring-payments-optimizer`
+- תקציב → `budget-planner`
+- כיול תחזית → `forecast-calibration-analyst`
+- שכר עתידי → `income-tax-scenario-planner`
+- תלוש בפועל → `payslip-tax-auditor`
+- חוב/הלוואה → `debt-loan-strategist`
+- פרופיל אשראי → `credit-profile-optimizer`
+- זכויות/מענקים → `benefits-rights-finder`
+- השקעות/הון → `wealth-investment-planner`
+- פנסיה/פרישה → `retirement-pension-advisor`
+- ביטוח → `insurance-coverage-auditor`
+- תקינות מערכת/נוסחאות → `financial-system-auditor`
+- ownership של KPI/מודל → `financial-model-architect`
 
-רק לאחר מכן נבחר Skill מוביל. מילות מפתח הן אות עזר בלבד.
+## Evidence Priority
+מסמך חדש → Verifier. אירוע חדש → Ingestor. לפני מסקנה: Match + anti-double-count. אם evidence מהותי סותר — `דורש אימות`.
 
-## קדימות ראיה ואירוע חדש
-כאשר מגיע מסמך/צילום/דוח/מייל/אישור חדש:
-`financial-document-verifier` פועל ראשון.
+## Cross-domain
+Lead Skill אחד כברירת מחדל. הוסף Supporting Skill רק אם פלטו משנה בפועל את ההחלטה. אין לחשב אותו אירוע פעמיים.
 
-כאשר מגיע אירוע פיננסי חדש או שינוי באירוע קיים:
-`financial-event-ingestor` מנהל את מחזור החיים שלו לאחר אימות הראיה לפי הצורך.
+## Short Intent
+`תבדוק`, `מה חדש`, `מאושר`, `איזה כרטיס?`, `אפשר?` נפתרים קודם מול active goal/context; אין לנתב מחדש רק ממילת מפתח כללית.
 
-סדר ברירת מחדל:
-`Verify Evidence → Normalize Event → Match → Update → Create → Anti-double-counting → Recalculate → Verify`.
-
-אם האימות לא הושלם או קיימת סתירה מהותית — אין לבסס החלטה סופית על הנתון השנוי במחלוקת.
-
-## ניתוב
-- מסמך, צילום, דוח, אישור או הודעה פיננסית חדשה → `financial-document-verifier`.
-- "שילמתי", "קיבלתי", "העברתי", "ביטלתי", "פרסתי", "שיניתי" או אירוע כספי חדש → `financial-event-ingestor`.
-- קובץ/פיד תנועות בנק או כרטיס, התאמת תנועות בפועל מול תכנון, זיהוי חיובים חוזרים או חריגים → `bank-transaction-reconciler`.
-- מצב תזרים, יתרת עו״ש, 30 יום, מינוס או יכולת כלכלית קרובה → `cashflow-guardian`.
-- "אם אעשה X מה יקרה?", Before → After, השוואת תרחיש מול מצב קיים → `decision-impact-simulator`.
-- בחירת כרטיס, מעבר הוראת קבע, מסגרת אשראי, מועד חיוב או פיזור עומס → `credit-card-optimizer`.
-- מיפוי/ייעול הוראות קבע, מנויים וחיובים חוזרים → `recurring-payments-optimizer`.
-- תקציב, קטגוריות, חריגות, תכנון חודשי או הקצאת כסף → `budget-planner`.
-- כיול תחזית, baseline צריכה, עונתיות, חגים או השוואת תחזית מול ביצוע → `forecast-calibration-analyst`.
-- שכר עתידי, הצעת עבודה, ברוטו־נטו, נקודות זיכוי או הכנסה עתידית → `income-tax-scenario-planner`.
-- תלוש שכר בפועל, ניכויים, הפרשות, צבירה שנתית או אות להחזר מס → `payslip-tax-auditor`.
-- הלוואה, מינוס, חוב, מחזור, פירעון מוקדם או הלוואה חדשה → `debt-loan-strategist`.
-- דירוג/פרופיל אשראי, החזרות, פיגורים, ניצול מסגרות או פתיחת אשראי חדש → `credit-profile-optimizer`.
-- זכויות, הטבות, מענקים, הנחות, קצבאות או זכאות מוסדית/ממשלתית → `benefits-rights-finder`.
-- חיסכון, השקעה, נדל״ן, נזילות, הון נטו או בניית הון ל־5 שנים → `wealth-investment-planner`.
-- פנסיה, גמל, השתלמות, דמי ניהול, מסלולים או פרישה → `retirement-pension-advisor`.
-- ביטוחי בריאות/חיים/דירה/רכב, כפל ביטוחי, חוסר כיסוי או עלות ביטוח כוללת → `insurance-coverage-auditor`.
-- "בדוק את המייל/דרייב למסמכים פיננסיים חדשים" או סריקה יזומה של מקורות מחוברים → `financial-inbox-monitor`.
-- תקלה, סנכרון, כפילות, נוסחה, איכות נתונים או בריאות מערכת → `financial-system-auditor`.
-- ארכיטקטורת חישובים, בעלות KPI, drift בין קוד לגיליון, Shadow/Parity/Cutover → `financial-model-architect` עם `financial-system-auditor` כתומך.
-
-## Active Goal גובר על מילה בודדת
-אם ההודעה קצרה כגון `תבדוק`, `תתקן`, `מאושר`, `מה חדש`, `איזה כרטיס?` או `אפשר?`:
-1. פתור תחילה את `active_goal` וה־`pending_action` מההקשר.
-2. אל תנתב מחדש רק בגלל מילה כללית.
-3. אם יש ראיה חדשה — קדימות ראיה/אירוע חדש עדיין גוברת.
-4. אם לא ניתן לפתור את היעד בביטחון ורק אז שאל שאלה ממוקדת.
-
-## בקשה משולבת
-1. מסמך חדש → Verifier ראשון.
-2. אירוע חדש → Event Ingestor לאחר אימות.
-3. אחרת בחר Skill מוביל לפי ההחלטה שהמשתמש מבקש.
-4. הפעל Skills תומכים רק לחלקים הנדרשים.
-5. אל תחשב אותו אירוע ביותר מ־Skill אחד ללא התאמה מפורשת.
-6. בצע anti-double-counting לפני מסקנה סופית.
-
-### דוגמאות
-- "שילמתי 2,610 ₪ ב־3 תשלומים, הנה הקבלה" → `financial-document-verifier` → `financial-event-ingestor` → `cashflow-guardian` אם נדרש.
-- "איזה חיובים קבועים כדאי להעביר מהכרטיס של ענת?" → `recurring-payments-optimizer` מוביל, `credit-card-optimizer` תומך.
-- "האם תלוש אוגוסט תקין והאם יש סימן להחזר מס?" → `payslip-tax-auditor` מוביל; `income-tax-scenario-planner` רק אם נדרש תרחיש עתידי.
-- "אם אוציא עוד 500 ₪ השבוע מה יקרה?" → `decision-impact-simulator` מוביל, `cashflow-guardian` תומך.
-- "סרוק את Gmail לחשבוניות חדשות" → `financial-inbox-monitor`; כל ממצא חדש עובר Verifier ואז Event Ingestor לפי הצורך.
-- "ייבאתי תנועות מהבנק — מה השתנה בתזרים?" → `bank-transaction-reconciler` מוביל, `cashflow-guardian` תומך.
-- "איך לשפר את פרופיל האשראי בלי לפגוע בתזרים?" → `credit-profile-optimizer` מוביל, `credit-card-optimizer` ו־`cashflow-guardian` תומכים.
-- "האם נכון להשקיע בנכס עכשיו?" → `wealth-investment-planner` מוביל, `decision-impact-simulator`, `cashflow-guardian` ו־`debt-loan-strategist` תומכים לפי הצורך.
-
-## סדר עדיפות נתונים
-1. נתון חדש בשיחה הנוכחית, לאחר סיווג ואימות מתאים.
-2. נתון מאומת ועדכני בקובץ `רואה חשבון - מערכת פיננסית`.
-3. מסמך רשמי או מקור מחובר ועדכני.
-4. נתון מאומת קודם.
-5. נתון מחושב.
-6. תחזית או הנחה.
-
-## תנאי עצירה
-עצור וסמן `דורש אימות` אם קיימת סתירה מהותית בזהות חשבון/כרטיס, סכום, תאריך, בעלים, תנאי הלוואה, תנאי זכאות, נתוני מס, השקעה, ביטוח או מקור נתון שעלולה לשנות החלטה.
-
-אין להשלים נתון מהותי בניחוש. תרחיש מותר רק כשהוא מסומן כ־`הנחה`/`תחזית` ואינו מוצג כמצב בפועל.
-
-## חוזה תוצאה אחיד
-כל Skill מחזיר:
-- `status`: PASS | WARN | FAIL
-- `data_state`
-- `source`
-- `impact`
-- `decision`
-- `next_check`
-
-ה־Router מוסיף לפי הצורך:
-- `resolved_intent`
-- `active_goal`
-- `lead_skill`
-- `supporting_skills`
-- `new_evidence_state`
-
-## פלט
-החזר תשובה אחת מאוחדת. אין צורך לחשוף למשתמש שמות Skills או אובייקטי ניתוב פנימיים אלא אם הוא שואל. כן יש לחשוף חוסר ודאות, סתירה או תנאי שמשנה את ההמלצה.
+## Guards
+Source/Freshness/Approval/Readback נשלטים ב־Kernel וב־Runtime של דורון. Skill זה אינו מבצע mutation בעצמו.
