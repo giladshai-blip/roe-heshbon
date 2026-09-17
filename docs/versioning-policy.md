@@ -1,79 +1,76 @@
 # Versioning Policy
 
 ## Rule
-
 The repository has one human-facing release version for the entire active system.
 
-- Active approved releases on `main` MUST use prefix `core-`.
-- Active development releases on `dev` MUST use prefix `dev-`.
+- Approved releases on `main` use prefix `core-`.
+- Development releases on `dev` use prefix `dev-`.
 - Format: `<channel>-MAJOR.MINOR.PATCH`.
 - Promotion keeps MAJOR.MINOR.PATCH and changes the prefix only.
-- `release.json` on each branch is the machine-readable source of truth for the active release.
-- `dev-engineering-agent` owns version resolution, release mechanics and promotion readiness checks.
+- `release.json` is the machine-readable source of truth.
+- דורון (`dev-engineering-agent`) owns version resolution, release mechanics and promotion readiness.
 
 ## Current baseline
+- approved `main`: `core-1.10.0`.
+- active unified DEV architecture: `dev-2.1.0`.
+- promotion target for this line: `core-2.1.0`.
+- approved restore base: `core-1.10.0`.
 
-- approved `main`: `core-1.10.0`
-- latest promoted capability: canonical DEV engineering identity **Doron/דורון** and `היי דורון` router trigger, with `היי דב` retained only as a legacy alias.
-- the next DEV release must use a version greater than `1.10.0` and list `core-1.10.0` as its approved base.
+`dev-2.0.0-readable-dashboard-functions` is an older unpromoted experiment and does not define the active DEV release. Because that number was already used on an experimental branch, the unified Doron breaking architecture uses `2.1.0` to avoid version collision.
 
 ## Version resolution — mandatory checks
-
-Before assigning or changing a release number, DEV must inspect:
+Before assigning or changing a release number, דורון must inspect:
 1. `release.json` on `main` and the active DEV branch;
-2. relevant Git history / branches / PR state;
-3. whether the previous DEV line has already been promoted;
-4. applicable live/installed build identifiers when directly verifiable;
-5. Legacy Build IDs separately from the release version.
+2. relevant Git history, branches and PR state;
+3. whether a previous DEV line was promoted or abandoned;
+4. applicable live/installed build identifiers when verifiable;
+5. Legacy Build IDs separately from Release Version.
 
-Never infer the next version from conversation memory alone.
+Never infer a version from conversation memory alone.
 
 ### Change class
-- `PATCH` — compatible bugfix only; no new capability or contract.
-- `MINOR` — new compatible capability, agent, contract, workflow or user-visible behavior.
-- `MAJOR` — breaking compatibility or a non-compatible architectural contract change.
+- `PATCH` — compatible bugfix only.
+- `MINOR` — new compatible capability/contract/workflow/behavior.
+- `MAJOR` — breaking compatibility or non-compatible architecture/contract change.
 
-Promotion preserves `MAJOR.MINOR.PATCH`: for example `dev-1.10.0` → `core-1.10.0`.
+Retiring `family-cfo-agent` as an active agent and moving all ownership to Doron is a MAJOR architectural change.
 
 ## Components
+All active components share the branch release number. In the unified architecture this includes:
+- Apps Script Core;
+- Dashboard;
+- Doron unified orchestrator;
+- Gabi language style;
+- financial Domain Sub-agents;
+- router and active bridge/application components.
 
-All active components share the branch release number, including Apps Script Core, Dashboard, Gabi, DEV engineering agent, financial sub-agents, router and any active bridge/application component included in that branch.
-
-This release number describes the integrated branch state. It does **not** replace component-specific Legacy Build IDs used for compatibility and traceability.
+`family-cfo-agent` is retired as an active component from `dev-2.1.0`; its legacy files may remain for compatibility and history.
 
 ## Dashboard numbering
+Dashboard has two identifiers:
+- **Release Version** — the integrated system release, e.g. `dev-2.1.0`.
+- **Legacy Build ID** — compatibility identifier such as `V5.10.0`.
 
-Dashboard has two distinct identifiers:
-- **Release version**: the system release, e.g. `dev-1.10.0` or `core-1.10.0`.
-- **Legacy Build ID**: compatibility identifier such as `V5.10.0` used by existing function names/history.
-
-The Dashboard MUST display/store the release version as `גרסת דשבורד`. A Legacy Build ID may be stored separately but MUST NOT be presented as the current release version.
+Legacy Build ID must never be presented as the current Release Version.
 
 ## Legacy identifiers
-
-Old identifiers such as `V5.x`, `0.7.x` and `1.0.x` are Legacy Build IDs only. They may remain inside compatibility code, triggers, historical specifications, archived version folders and regression history when renaming them would damage traceability or compatibility. They MUST NOT be presented as the current release version.
-
-Example: Apps Script may still carry Legacy Build ID `V5.10.1`, while the active repository release is `core-1.10.0`.
+Identifiers such as `V5.x`, `0.7.x` and archived version labels may remain in compatibility code, triggers, historical specs and regression history. They are not active system release numbers.
 
 ## Files and tests
-
-New active versioned docs/tests must start with the branch release prefix (`core-` on main, `dev-` on dev). Historical files explicitly stored as version history are exempt and retain their original identifiers for auditability.
+New active versioned docs/tests start with the branch release prefix. Historical files retained for auditability keep their old identifiers.
 
 ## Promotion gate
-
 A DEV release may be promoted only when:
 - required tests pass;
 - readback passes;
-- no unresolved source/runtime/version drift remains for the promoted surface;
-- `release.json` and docs agree;
-- user explicitly approves promotion.
+- no unresolved source/runtime/version drift remains;
+- `release.json` and canonical docs agree;
+- Gilad explicitly approves promotion.
 
-## GitHub handoff requirement
-
-For code/script/release work, DEV must surface direct GitHub links to the canonical changed source and, when applicable, the PR and commit. Gabi must consult those canonical references before claiming the technical state is unavailable or unknown.
+## GitHub handoff
+For code/script/release work, דורון surfaces direct GitHub links to changed canonical source and, when applicable, PR/commit.
 
 ## Restore
-
-The command `שחזר` restores the active dev experiment component(s) from the latest approved `main` release, not from a previous dev revision unless explicitly requested.
+`שחזר` restores the active experiment surface from the latest approved `main` unless another revision is explicitly requested.
 
 Current restore base: `core-1.10.0`.
