@@ -1,22 +1,26 @@
 {
-  "schema": 1,
+  "schema": 2,
   "channel": "dev",
-  "version": "dev-1.12.0",
+  "version": "dev-2.1.0",
   "approved": false,
-  "promotionTarget": "core-1.12.0",
+  "promotionTarget": "core-2.1.0",
   "approvedCore": "core-1.10.0",
-  "basedOnMainSha": "0643dc4eb650e06f65e455834751236183dc912a",
+  "basedOnMainSha": "c29b5344182ddc9ceb8788d32743af60b40ebe03",
+  "architecture": "single-agent-unified-doron",
   "components": {
-    "appsScriptCore": "dev-1.12.0",
-    "dashboard": "dev-1.12.0",
-    "familyCfoAgent": "dev-1.12.0",
-    "devEngineeringAgent": "dev-1.12.0",
-    "cashflowLiquidityAgent": "dev-1.12.0",
-    "financialPlanningAgent": "dev-1.12.0",
-    "householdControllerAgent": "dev-1.12.0",
-    "incomeTaxAgent": "dev-1.12.0",
-    "protectionRetirementAgent": "dev-1.12.0",
-    "conversationRouter": "dev-1.12.0"
+    "appsScriptCore": "dev-2.1.0",
+    "dashboard": "dev-2.1.0",
+    "unifiedOrchestrator": "dev-2.1.0",
+    "devEngineeringAgent": "dev-2.1.0",
+    "gabiLanguageStyle": "dev-2.1.0",
+    "cashflowLiquidityAgent": "dev-2.1.0",
+    "financialPlanningAgent": "dev-2.1.0",
+    "householdControllerAgent": "dev-2.1.0",
+    "incomeTaxAgent": "dev-2.1.0",
+    "protectionRetirementAgent": "dev-2.1.0"
+  },
+  "retiredComponents": {
+    "familyCfoAgent": "retired-in-dev-2.1.0"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
@@ -29,18 +33,21 @@
     "protectionRetirementAgent": "0.7.0"
   },
   "routing": {
-    "unsetMenu": ["GABI_AGENT", "DEV_ENVIRONMENT", "CORE_RUNTIME"],
+    "activeAgent": "dev-engineering-agent",
+    "financialOwnership": "dev-engineering-agent",
+    "technicalOwnership": "dev-engineering-agent",
+    "coreIsRuntimeOnly": true,
+    "gabiIsStyleOnly": true,
     "directTriggers": {
-      "היי גבי": "GABI_AGENT",
-      "היי dev": "DEV_ENVIRONMENT",
-      "היי דורון": "DEV_ENVIRONMENT",
-      "היי דב": "DEV_ENVIRONMENT",
-      "היי core": "CORE_RUNTIME"
-    },
-    "technicalOwnership": "dev-engineering-agent"
+      "היי גבי": "DORON_GABI_STYLE",
+      "היי דורון": "DORON_STYLE",
+      "היי dev": "DORON_STYLE",
+      "היי דב": "DORON_STYLE_LEGACY_ALIAS",
+      "היי core": "DORON_CORE_RUNTIME"
+    }
   },
   "startup": {
-    "gabiFastStart": true,
+    "singleAgent": true,
     "pureGreetingFinancialDriveCalls": 0,
     "lazyRuntime": true,
     "conversationCache": true,
@@ -48,7 +55,13 @@
     "contextBudget": true,
     "contextInstructionAudit": true,
     "userFacingGlossary": true,
-    "fastPaths": ["balance", "newTransactions", "recentTransactions", "cashflow", "whatChanged", "topPriority"]
+    "gabiLanguageStyle": "docs/gabi-language-style.md"
+  },
+  "financial": {
+    "sourceOfTruth": "רואה חשבון - מערכת פיננסית",
+    "freshnessRequired": true,
+    "financialSelfCheckRequired": true,
+    "readbackRequiredForWrites": true
   },
   "engineering": {
     "defaultDevBranch": "dev",
@@ -57,7 +70,6 @@
     "proactiveBugHuntPerTask": true,
     "continuousBackgroundMonitoring": false,
     "gitHubLinksRequiredForCodeHandoff": true,
-    "gabiMustCheckCanonicalGitHubBeforeUnknownClaim": true,
     "engineeringSkills": true,
     "engineeringSkillsLoading": "lazy",
     "engineeringSkillsManifest": "agents/dev-engineering-agent/skills/manifest.json",
