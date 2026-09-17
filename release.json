@@ -1,7 +1,7 @@
 {
   "schema": 3,
   "channel": "dev",
-  "version": "dev-3.0.0",
+  "version": "dev-3.0.1",
   "status": "active-development",
   "architecture": "single-agent-single-branch-doron",
   "repository": {
@@ -12,16 +12,17 @@
     "promotionEnabled": false
   },
   "components": {
-    "appsScriptCore": "dev-3.0.0",
-    "dashboard": "dev-3.0.0",
-    "unifiedOrchestrator": "dev-3.0.0",
-    "devEngineeringAgent": "dev-3.0.0",
-    "gabiLanguageStyle": "dev-3.0.0",
-    "cashflowLiquidityAgent": "dev-3.0.0",
-    "financialPlanningAgent": "dev-3.0.0",
-    "householdControllerAgent": "dev-3.0.0",
-    "incomeTaxAgent": "dev-3.0.0",
-    "protectionRetirementAgent": "dev-3.0.0"
+    "appsScriptCore": "dev-3.0.1",
+    "dashboard": "dev-3.0.1",
+    "unifiedOrchestrator": "dev-3.0.1",
+    "devEngineeringAgent": "dev-3.0.1",
+    "gabiLanguageStyle": "dev-3.0.1",
+    "cashflowLiquidityAgent": "dev-3.0.1",
+    "financialPlanningAgent": "dev-3.0.1",
+    "householdControllerAgent": "dev-3.0.1",
+    "incomeTaxAgent": "dev-3.0.1",
+    "protectionRetirementAgent": "dev-3.0.1",
+    "engineeringSkills": "dev-3.0.1"
   },
   "retiredComponents": {
     "familyCfoAgent": "retired",
@@ -57,7 +58,9 @@
     "approvalIsScoped": true,
     "readbackRequiresAdditionalApproval": false,
     "sideEffectTestsRequireApproval": true,
-    "standingAutomationRequiresExplicitScopeApproval": true
+    "standingAutomationRequiresExplicitScopeApproval": true,
+    "releaseApprovalPhrase": "מאושר לקידום",
+    "releaseApprovalMeaning": "approve-current-dev-release"
   },
   "startup": {
     "singleAgent": true,
@@ -70,6 +73,15 @@
     "contextInstructionAudit": true,
     "userFacingGlossary": true,
     "gabiLanguageStyle": "docs/gabi-language-style.md"
+  },
+  "optimization": {
+    "profile": "branch-wide-3.0.1",
+    "activeDocsOnlyByDefault": true,
+    "historicalDocsDefaultLoad": false,
+    "engineeringSkillsLoading": "lazy",
+    "canonicalSkillManifest": "agents/dev-engineering-agent/skills/manifest.json",
+    "deduplicateRuntimeRules": true,
+    "legacyReferencesAllowedOnlyForCompatibilityOrHistory": true
   },
   "financial": {
     "sourceOfTruth": "רואה חשבון - מערכת פיננסית",
