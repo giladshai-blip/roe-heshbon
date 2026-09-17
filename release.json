@@ -1,22 +1,22 @@
 {
   "schema": 1,
   "channel": "dev",
-  "version": "dev-1.11.0",
+  "version": "dev-1.12.0",
   "approved": false,
-  "promotionTarget": "core-1.11.0",
+  "promotionTarget": "core-1.12.0",
   "approvedCore": "core-1.10.0",
   "basedOnMainSha": "0643dc4eb650e06f65e455834751236183dc912a",
   "components": {
-    "appsScriptCore": "dev-1.11.0",
-    "dashboard": "dev-1.11.0",
-    "familyCfoAgent": "dev-1.11.0",
-    "devEngineeringAgent": "dev-1.11.0",
-    "cashflowLiquidityAgent": "dev-1.11.0",
-    "financialPlanningAgent": "dev-1.11.0",
-    "householdControllerAgent": "dev-1.11.0",
-    "incomeTaxAgent": "dev-1.11.0",
-    "protectionRetirementAgent": "dev-1.11.0",
-    "conversationRouter": "dev-1.11.0"
+    "appsScriptCore": "dev-1.12.0",
+    "dashboard": "dev-1.12.0",
+    "familyCfoAgent": "dev-1.12.0",
+    "devEngineeringAgent": "dev-1.12.0",
+    "cashflowLiquidityAgent": "dev-1.12.0",
+    "financialPlanningAgent": "dev-1.12.0",
+    "householdControllerAgent": "dev-1.12.0",
+    "incomeTaxAgent": "dev-1.12.0",
+    "protectionRetirementAgent": "dev-1.12.0",
+    "conversationRouter": "dev-1.12.0"
   },
   "legacyBuildIds": {
     "appsScriptCore": "V5.10.1",
@@ -47,6 +47,7 @@
     "queryPlanner": true,
     "contextBudget": true,
     "contextInstructionAudit": true,
+    "userFacingGlossary": true,
     "fastPaths": ["balance", "newTransactions", "recentTransactions", "cashflow", "whatChanged", "topPriority"]
   },
   "engineering": {
@@ -60,7 +61,8 @@
     "engineeringSkills": true,
     "engineeringSkillsLoading": "lazy",
     "engineeringSkillsManifest": "agents/dev-engineering-agent/skills/manifest.json",
-    "contextAuditSkill": "context-instruction-audit"
+    "contextAuditSkill": "context-instruction-audit",
+    "userFacingGlossary": "docs/user-facing-glossary.md"
   },
   "restore": {
     "role": "latest approved source for dev restore",
